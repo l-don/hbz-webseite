@@ -8,13 +8,19 @@ html, body {
 
 .header-bar {
   width: 100%;
-  height: 50px;
+  height: auto;
   background-color: transparent;
   display: flex;
+
   justify-content: center;
   align-items: center;
   margin: 0;
   position: fixed;
+}
+
+.wappen{
+  width: 80px;
+  margin-top: 10px;
 }
 
 .header-bar nav {
@@ -22,7 +28,11 @@ html, body {
 }
 
 .header-bar nav a { /* Stil für die Link-Elemente */
-  margin: 0 10px; /* Fügt Abstand zwischen den Links hinzu */
+  /* Fügt Abstand zwischen den Links hinzu */
+  margin-top: 20px;
+  margin-right: 10px;
+  margin-left: 10px;
+  margin-bottom: 0;
   padding: 5px 15px;
   background-color: transparent;
   cursor: pointer;
