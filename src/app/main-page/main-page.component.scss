@@ -1,11 +1,16 @@
-/* Bestehende Styles */
 .hero-img {
-  width: 100%;
+  width: 100%; /* Stellt die Breite des Bildes auf 100% des Containers ein */
+  height: 100%; /* Stellt die Höhe des Bildes auf 100% des Containers ein */
+  object-fit: cover;
+  max-height: 250px;
+  top: 0;
 }
 .main {
   background-color: #d4ffb6;
   display: flex;
   flex-direction: column;
+  height: 800px;
+  overflow: hidden;
 
 }
 
