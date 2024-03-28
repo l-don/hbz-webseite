@@ -14,6 +14,7 @@ html, body {
   justify-content: center;
   align-items: center;
   margin: 0;
+  position: fixed;
 }
 
 .header-bar nav {
@@ -22,15 +23,12 @@ html, body {
 
 .header-bar nav button {
   margin: 0 10px; /* Fügt Abstand zwischen den Buttons hinzu */
-  padding: 5px 15px; /* Passe nach Bedarf an */
+  padding: 5px 15px;
+  background-color: white;
+  cursor: pointer;
+  text-decoration: none;
 }
 
-/* Optional: Grundlegende Button-Stilisierung */
-.header-bar nav button {
-  background-color: white;
-  border: 2px solid black;
-  cursor: pointer;
-}
 
 .header-bar nav button:hover {
   background-color: lightgreen;

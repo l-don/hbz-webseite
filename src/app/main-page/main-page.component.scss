@@ -1,6 +1,39 @@
-/* Slideshow container */
-.main{
-  background-color: blue;
-  height: 100px;
+/* Bestehende Styles */
+.hero-img {
   width: 100%;
+}
+.main {
+  background-color: #d4ffb6;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 25% 50% 25%; /* Definiert die Breite der Spalten */
+  justify-items: center; /* Zentriert die Inhalte horizontal */
+  align-items: start; /* Start-Ausrichtung vertikal für alle Inhalte */
+}
+
+.left-image img, .right-image img {
+  width: 100%; /* Macht die Bilder responsive innerhalb ihrer Container */
+}
+
+.center-text {
+  text-align: center; /* Zentriert den Text innerhalb des Containers */
+}
+
+.right-image {
+  padding-top: 50px; /* Verschiebt das rechte Bild nach unten */
+  margin-right: 30px;
+  background-color: aqua;
+  height: 100%;
+  min-height: 400px;
+}
+.left-image {
+  padding-top: 10px;
+  margin-left: 30px;
+  background-color: brown;
+  height: 100%;
+  min-height: 400px;
 }
