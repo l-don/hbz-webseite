@@ -9,7 +9,7 @@ html, body {
 .header-bar {
   width: 100%;
   height: 50px;
-  background-color: green;
+  background-color: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -21,15 +21,18 @@ html, body {
   display: flex;
 }
 
-.header-bar nav button {
-  margin: 0 10px; /* Fügt Abstand zwischen den Buttons hinzu */
+.header-bar nav a { /* Stil für die Link-Elemente */
+  margin: 0 10px; /* Fügt Abstand zwischen den Links hinzu */
   padding: 5px 15px;
-  background-color: white;
+  background-color: transparent;
   cursor: pointer;
   text-decoration: none;
+  color: black; /* Setzt die Textfarbe. Passen Sie dies nach Bedarf an */
+  border: none; /* Entfernt den Button-Rahmen */
+  outline: none; /* Entfernt den Fokus-Rahmen */
+  font-family: "Frank Ruehl CLM",serif;
 }
 
-
-.header-bar nav button:hover {
-  background-color: lightgreen;
+.header-bar nav a:hover {
+  text-decoration: underline; /* Fügt Unterstreichung beim Hover hinzu */
 }

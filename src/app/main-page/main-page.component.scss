@@ -6,6 +6,7 @@
   background-color: #d4ffb6;
   display: flex;
   flex-direction: column;
+
 }
 
 .grid-container {
@@ -13,15 +14,27 @@
   grid-template-columns: 25% 50% 25%; /* Definiert die Breite der Spalten */
   justify-items: center; /* Zentriert die Inhalte horizontal */
   align-items: start; /* Start-Ausrichtung vertikal für alle Inhalte */
+  max-width: 1000px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .left-image img, .right-image img {
-  width: 100%; /* Macht die Bilder responsive innerhalb ihrer Container */
+  width: 100%;
+}
+
+.heading{
+  padding: 20px;
+  font-family: 'Playfair Display', serif;
+  font-size: 40px;
+  font-weight: bold;
+  line-height: 60px;
 }
 
 .center-text {
   text-align: center; /* Zentriert den Text innerhalb des Containers */
 }
+
 
 .right-image {
   padding-top: 50px; /* Verschiebt das rechte Bild nach unten */
