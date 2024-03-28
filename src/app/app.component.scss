@@ -43,3 +43,55 @@ html, body {
 .header-bar nav a:hover {
   text-decoration: underline; /* Fügt Unterstreichung beim Hover hinzu */
 }
+
+
+.footer {
+  width: 100%;
+  background-color: #47ab00; /* Hintergrundfarbe des Footers */
+  color: black; /* Textfarbe des Footers */
+  padding: 20px 0; /* Innenabstand oben und unten */
+  display: flex;
+  justify-content: space-between; /* Platzieren Sie die Footer-Abschnitte gleichmäßig */
+  align-items: flex-start; /* Ausrichtung des Inhalts nach oben */
+  bottom: 0; /* Setzen Sie den Footer immer ans untere Ende des Viewports */
+  font-family: "Frank Ruehl CLM", serif;
+  font-size: 12pt;
+}
+
+.footer-section {
+  flex: 1; /* Alle Footer-Abschnitte sollen gleich groß sein */
+  text-align: center; /* Zentriert den Inhalt horizontal */
+}
+
+.kontakt{
+  text-align: left;
+  margin-left: 50px;
+}
+
+.social-icons img {
+  width: 30px; /* Setzen Sie die Breite der Social-Media-Icons */
+  margin: 5px; /* Fügen Sie Abstand zwischen den Icons hinzu */
+  cursor: pointer;
+}
+
+.footer input[type="email"] {
+  padding: 5px; /* Innenabstand für das Eingabefeld */
+  width: 200px; /* Breite des Eingabefelds */
+}
+
+.footer button {
+  padding: 5px 10px; /* Innenabstand für den Button */
+  background-color: #cc6223; /* Hintergrundfarbe des Buttons */
+  color: #fff; /* Textfarbe des Buttons */
+  border: none; /* Entfernen Sie den Rahmen des Buttons */
+  cursor: pointer; /* Zeigen Sie den Cursor an, wenn Sie über den Button fahren */
+  &:hover {
+    background-color: #be5b20;
+  }
+}
+
+.footer h3{
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 16pt;
+}
