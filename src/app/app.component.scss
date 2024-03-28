@@ -29,15 +29,12 @@ html, body {
 
 .header-bar nav a { /* Stil für die Link-Elemente */
   /* Fügt Abstand zwischen den Links hinzu */
-  margin-top: 20px;
-  margin-right: 10px;
-  margin-left: 10px;
-  margin-bottom: 0;
+  margin: 20px 10px 0;
   padding: 5px 15px;
   background-color: transparent;
   cursor: pointer;
   text-decoration: none;
-  color: black; /* Setzt die Textfarbe. Passen Sie dies nach Bedarf an */
+  color: white; /* Setzt die Textfarbe. Passen Sie dies nach Bedarf an */
   border: none; /* Entfernt den Button-Rahmen */
   outline: none; /* Entfernt den Fokus-Rahmen */
   font-family: "Frank Ruehl CLM",serif;

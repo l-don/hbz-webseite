@@ -9,7 +9,7 @@
   background-color: #d4ffb6;
   display: flex;
   flex-direction: column;
-  height: 800px;
+  min-height: 800px;
   overflow: hidden;
 
 }
@@ -29,29 +29,51 @@
 }
 
 .heading{
+  margin-top: 30px;
   padding: 20px;
   font-family: 'Playfair Display', serif;
   font-size: 40px;
   font-weight: bold;
   line-height: 60px;
 }
-
+.info-text{
+  padding:0 40px;
+}
 .center-text {
   text-align: center; /* Zentriert den Text innerhalb des Containers */
 }
 
 
 .right-image {
-  padding-top: 50px; /* Verschiebt das rechte Bild nach unten */
-  margin-right: 30px;
-  background-color: aqua;
+  padding-top: 120px; /* Verschiebt das rechte Bild nach unten */
   height: 100%;
   min-height: 400px;
 }
 .left-image {
-  padding-top: 10px;
-  margin-left: 30px;
-  background-color: brown;
+  padding-top: 50px;
   height: 100%;
   min-height: 400px;
+}
+
+
+.input-container {
+  margin-bottom: 20px; /* Abstand zwischen den Input-Feldern */
+}
+
+.input-container label {
+  display: block; /* Stellt sicher, dass das Label unter dem Input-Feld steht */
+  margin-bottom: 5px; /* Abstand zwischen dem Label und dem Input-Feld */
+}
+
+.input-container input,
+.input-container textarea {
+  width: 100%; /* Nimmt die gesamte Breite des Containers ein */
+  padding: 10px; /* Innenabstand des Input-Feldes */
+  border: 1px solid #ccc; /* Rand des Input-Feldes */
+  border-radius: 5px; /* Abrundung der Ecken des Input-Feldes */
+  box-sizing: border-box; /* Berücksichtigt die Grenzen und das Padding in der Breite */
+}
+
+.submit-button:hover {
+  background-color: #0056b3; /* Hintergrundfarbe des Buttons bei Hover */
 }

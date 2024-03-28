@@ -12,3 +12,19 @@ html, body {
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+.custom-button-1{
+  margin-top: 20px;
+  padding:10px 20px;
+  border: none;
+  outline: none;
+  background-color: #cc6223;
+  cursor: pointer;
+
+  font-family: 'Playfair Display', serif;
+  color: white;
+  font-weight: 500;
+  &:hover {
+    background-color: #be5b20;
+  }
+}
+
