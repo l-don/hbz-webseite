@@ -44,10 +44,16 @@ html, body {
   text-decoration: underline; /* Fügt Unterstreichung beim Hover hinzu */
 }
 
+.header-bg{
+  width: 100%;
+  position: fixed;
+  height: 66px;
+  background-color: #771c1c;
+}
 
 .footer {
   width: 100%;
-  background-color: #47ab00; /* Hintergrundfarbe des Footers */
+  background-color: #8a9a5b; /* Hintergrundfarbe des Footers */
   color: black; /* Textfarbe des Footers */
   padding: 20px 0; /* Innenabstand oben und unten */
   display: flex;
