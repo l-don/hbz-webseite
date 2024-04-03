@@ -1,8 +1,11 @@
+
+@import "../../styles";
+
 .hero-img {
   width: 100%; /* Stellt die Breite des Bildes auf 100% des Containers ein */
   height: 100%; /* Stellt die Höhe des Bildes auf 100% des Containers ein */
   object-fit: cover;
-  max-height: 250px;
+  max-height: 350px;
   top: 0;
 }
 .main {
@@ -35,7 +38,7 @@
   font-family: 'Playfair Display', serif;
   font-size: 40px;
   font-weight: bold;
-  line-height: 60px;
+  line-height: 46px;
 }
 .info-text{
   padding:0 40px;
@@ -87,4 +90,11 @@
 
 .submit-button:hover {
   background-color: #0056b3; /* Hintergrundfarbe des Buttons bei Hover */
+}
+
+.header-spacer{
+  background-color: green;
+  height: $header-height;
+  top:0;
+
 }

@@ -1,3 +1,4 @@
+@import "../styles";
 
 html, body {
   margin: 0;
@@ -47,7 +48,7 @@ html, body {
 .header-bg{
   width: 100%;
   position: fixed;
-  height: 66px;
+  height:$header-height;
   background-color: #771c1c;
 }
 
