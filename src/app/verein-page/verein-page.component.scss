@@ -1,0 +1,20 @@
+@import "../../styles";
+
+.header-spacer{
+  background-color: green;
+  height: $header-height;
+  top:0;
+
+}
+
+.hero-img {
+  width: 100%; /* Stellt die Breite des Bildes auf 100% des Containers ein */
+  height: 100%; /* Stellt die Höhe des Bildes auf 100% des Containers ein */
+  object-fit: cover;
+  max-height: 250px;
+  top: 0;
+}
+
+h1{
+  font-family: 'Playfair Display', serif;
+}
