@@ -1,0 +1,29 @@
+name: Angular Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Build Angular app to prod
+        working-directory: hbz-webseite
+        run: npm install && npm run build:prod
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4.5.0
+        with:
+          folder: hbz-webseite/dist/browser
+          branch: prod
+          token: ${{ secrets.GH_TOKEN }}
