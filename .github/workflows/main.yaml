@@ -19,7 +19,7 @@ jobs:
 
       - name: Build Angular app to prod
         working-directory: hbz-webseite
-        run: npm install && npm run build:prod
+        run: npm install --legacy-peer-deps && npm run build:prod
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4.5.0
