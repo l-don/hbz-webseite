@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:prod": "ng build --configuration=production --base-href=/hbz-webseite/",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:hbz-webseite": "node dist/hbz-webseite/server/server.mjs"
