@@ -104,3 +104,8 @@ html, body {
   font-weight: 600;
   font-size: 16pt;
 }
+@media (max-width: 1100px) {
+  .header-bar, .header-bg {
+    display: none;
+  }
+}

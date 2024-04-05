@@ -10,9 +10,16 @@
     <a routerLink="/tross" class="nav-link">TROSS</a>
     <a routerLink="/bf" class="nav-link">BILDER & FAKTEN</a>
     <a routerLink="/neuigkeiten" class="nav-link">NEUIGKEITEN</a>
-
   </nav>
 </header>
+<button mat-icon-button [matMenuTriggerFor]="menu" class="hamburger-menu">
+  <mat-icon>menu</mat-icon>
+</button>
+<mat-menu #menu="matMenu">
+  <button mat-menu-item routerLink="/main">HOME</button>
+  <button mat-menu-item routerLink="/sponsoren">SPONSOREN</button>
+  <!-- Weitere Menüpunkte -->
+</mat-menu>
 
 <main>
   <router-outlet></router-outlet> <!-- Hier werden die Komponenten gerendert -->
