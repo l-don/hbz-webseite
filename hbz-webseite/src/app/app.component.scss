@@ -14,6 +14,12 @@ html, body {
   z-index: 1000; /* Stellt sicher, dass das Menü-Icon über anderen Elementen liegt */
 }
 
+.hamburger-menu .mat-icon {
+  color: white;
+  transform: scale(2);
+  margin: 12px;
+}
+
 .header-bar {
   width: 100%;
   height: auto;
@@ -112,7 +118,7 @@ html, body {
   font-weight: 600;
   font-size: 16pt;
 }
-@media (max-width: 1100px) {
+@media (max-width: 768px) {
   .header-bar, .header-bg {
     display: none;
   }
