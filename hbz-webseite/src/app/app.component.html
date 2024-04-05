@@ -15,20 +15,28 @@
 <div class="logo-container">
   <img class="wappen" src="assets/wappen2.png" alt="wappen">
 </div>
-<button mat-icon-button [matMenuTriggerFor]="menu" class="hamburger-menu">
-  <mat-icon>menu</mat-icon>
+<!-- Hamburger-Menü-Button -->
+<button mat-icon-button (click)="toggleMenu()" class="hamburger-menu">
+  <mat-icon class="hamburger-icon">menu</mat-icon>
 </button>
-<mat-menu #menu="matMenu">
-  <button mat-menu-item routerLink="/main">HOME</button>
-  <button mat-menu-item routerLink="/sponsoren">SPONSOREN</button>
-  <button mat-menu-item routerLink="/verein">VEREIN</button>
-  <button mat-menu-item routerLink="/tross">TROSS</button>
-  <button mat-menu-item routerLink="/bf">BILDER & FAKTEN</button>
-  <button mat-menu-item routerLink="/neuigkeiten">NEUIGKEITEN</button>
-</mat-menu>
+
+<!-- Fullscreen-Menü -->
+<div class="fullscreen-menu" [class.open]="menuOpen">
+  <button mat-icon-button (click)="toggleMenu()" class="close-menu">
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
+  <nav class="menu-navigation">
+    <a routerLink="/main" (click)="toggleMenu()">HOME</a>
+    <a routerLink="/sponsoren" (click)="toggleMenu()">SPONSOREN</a>
+    <a routerLink="/verein" (click)="toggleMenu()">VEREIN</a>
+    <a routerLink="/tross" (click)="toggleMenu()">TROSS</a>
+    <a routerLink="/bf" (click)="toggleMenu()">BILDER & FAKTEN</a>
+    <a routerLink="/neuigkeiten" (click)="toggleMenu()">NEUIGKEITEN</a>
+  </nav>
+</div>
 
 <div class="main">
-  <router-outlet></router-outlet> <!-- Hier werden die Komponenten gerendert -->
+  <router-outlet></router-outlet>
 </div>
 <footer class="footer">
   <div class="footer-section kontakt">

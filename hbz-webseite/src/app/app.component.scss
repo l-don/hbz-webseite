@@ -14,10 +14,15 @@ html, body {
   z-index: 1000; /* Stellt sicher, dass das Menü-Icon über anderen Elementen liegt */
 }
 
-.hamburger-menu .mat-icon {
+.hamburger-icon{
   color: white;
   transform: scale(3);
   margin: 30px;
+}
+
+.close-icon{
+  color: white;
+  transform: scale(3);
 }
 
 .logo-container {
@@ -153,7 +158,7 @@ html, body {
     margin-top: 20px;
   }
   .wappen{
-    width: 22vw;
+    width: 26vw;
     margin-top: 70px;
   }
 
@@ -173,3 +178,40 @@ html, body {
   }
 
 }
+
+.fullscreen-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0, 0.9); /* oder eine andere Farbe */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+  z-index: 500;
+}
+
+.fullscreen-menu.open {
+  transform: translateX(0);
+}
+
+.menu-navigation a {
+  color: #fff; /* oder eine andere Farbe */
+  padding: 20px;
+  text-decoration: none;
+  font-size: 34px; /* oder eine andere Größe */
+  display: block;
+  font-family: "Frank Ruehl CLM", serif;
+  line-height: 40px;
+}
+
+.close-menu {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
