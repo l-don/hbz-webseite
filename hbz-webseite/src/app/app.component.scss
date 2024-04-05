@@ -52,12 +52,12 @@ html, body {
 
 .nav-left {
   justify-content: flex-end;
-  padding-right: 60px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
+  padding-right: 40px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
 }
 
 .nav-right {
   justify-content: flex-start;
-  padding-left: 60px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
+  padding-left: 40px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
 }
 
 .header-bar nav {
@@ -152,5 +152,14 @@ html, body {
   .logo-container {
     position: absolute;
     margin-top: 20px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .nav-left{
+    font-size: 11px;
+  }
+  .nav-right{
+    font-size: 11px;
   }
 }
