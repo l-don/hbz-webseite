@@ -51,6 +51,20 @@ html, body {
   background-color: #771c1c;
 }
 
+
+.kontakt{
+  text-align: left;
+  margin-left: 50px;
+}
+
+.social-icons img {
+  width: 30px; /* Setzen Sie die Breite der Social-Media-Icons */
+  margin: 5px; /* Fügen Sie Abstand zwischen den Icons hinzu */
+  cursor: pointer;
+}
+
+
+
 .footer {
   width: 100%;
   background-color: #8a9a5b; /* Hintergrundfarbe des Footers */
@@ -67,17 +81,6 @@ html, body {
 .footer-section {
   flex: 1; /* Alle Footer-Abschnitte sollen gleich groß sein */
   text-align: center; /* Zentriert den Inhalt horizontal */
-}
-
-.kontakt{
-  text-align: left;
-  margin-left: 50px;
-}
-
-.social-icons img {
-  width: 30px; /* Setzen Sie die Breite der Social-Media-Icons */
-  margin: 5px; /* Fügen Sie Abstand zwischen den Icons hinzu */
-  cursor: pointer;
 }
 
 .footer input[type="email"] {
