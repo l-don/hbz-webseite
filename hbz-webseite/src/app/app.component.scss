@@ -121,7 +121,7 @@ html, body {
 
 .footer input[type="email"] {
   padding: 5px; /* Innenabstand für das Eingabefeld */
-  width: 200px; /* Breite des Eingabefelds */
+  width: 20vw; /* Breite des Eingabefelds */
 }
 
 .footer button {
@@ -155,6 +155,12 @@ html, body {
   .wappen{
     width: 22vw;
     margin-top: 70px;
+  }
+
+  .footer h3{
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    font-size: 4vw;
   }
 }
 
