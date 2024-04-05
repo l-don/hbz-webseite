@@ -6,10 +6,6 @@ html, body {
   height: 100%;
 }
 
-main{
-  min-width: 438px;
-}
-
 .hamburger-menu{
   display: none;
   position: fixed;
@@ -20,8 +16,8 @@ main{
 
 .hamburger-menu .mat-icon {
   color: white;
-  transform: scale(2);
-  margin: 12px;
+  transform: scale(3);
+  margin: 30px;
 }
 
 .logo-container {
@@ -95,7 +91,6 @@ main{
 
 .kontakt{
   text-align: left;
-  margin-left: 50px;
 }
 
 .social-icons img {
@@ -110,7 +105,7 @@ main{
   width: 100%;
   background-color: #8a9a5b; /* Hintergrundfarbe des Footers */
   color: black; /* Textfarbe des Footers */
-  padding: 20px 0; /* Innenabstand oben und unten */
+  padding: 20px; /* Innenabstand oben und unten */
   display: flex;
   justify-content: space-between; /* Platzieren Sie die Footer-Abschnitte gleichmäßig */
   align-items: flex-start; /* Ausrichtung des Inhalts nach oben */
@@ -157,6 +152,10 @@ main{
     position: absolute;
     margin-top: 20px;
   }
+  .wappen{
+    width: 22vw;
+    margin-top: 70px;
+  }
 }
 
 @media (max-width: 1000px) {
@@ -166,4 +165,5 @@ main{
   .nav-right{
     font-size: 11px;
   }
+
 }

@@ -1,8 +1,7 @@
 .hero-img {
-  width: 100%; /* Stellt die Breite des Bildes auf 100% des Containers ein */
-  height: 100%; /* Stellt die Höhe des Bildes auf 100% des Containers ein */
+  width: 100%;
   object-fit: cover;
-  max-height: 250px;
+  height: 400px;
   top: 0;
 }
 .main {
@@ -99,7 +98,17 @@
   }
 
   .hero-img{
-    height: 1000px;
+    height:100vh;
+  }
+
+  .intro-text{
+
+    $dist: 400px;
+    margin-top: -$dist;
+    margin-bottom: $dist;
+    font-size: 11vw;
+    line-height: 11vw;
+    color: white;
   }
 }
 
