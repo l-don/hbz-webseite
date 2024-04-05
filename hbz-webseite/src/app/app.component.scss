@@ -6,6 +6,14 @@ html, body {
   height: 100%;
 }
 
+.hamburger-menu{
+  display: none;
+  position: fixed;
+  top: 0; /* An den oberen Rand des Containers anpassen */
+  left: 0; /* An den rechten Rand des Containers anpassen */
+  z-index: 1000; /* Stellt sicher, dass das Menü-Icon über anderen Elementen liegt */
+}
+
 .header-bar {
   width: 100%;
   height: auto;
@@ -107,5 +115,8 @@ html, body {
 @media (max-width: 1100px) {
   .header-bar, .header-bg {
     display: none;
+  }
+  .hamburger-menu{
+    display: block ;
   }
 }
