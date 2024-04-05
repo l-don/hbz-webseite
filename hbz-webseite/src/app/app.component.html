@@ -1,17 +1,20 @@
-<div class ="header-bg">
-
-</div>
+<div class ="header-bg"></div>
 <header class="header-bar">
-  <nav>
+  <nav class="nav-left">
     <a routerLink="/main" class="nav-link">HOME</a>
     <a routerLink="/sponsoren" class="nav-link">SPONSOREN</a>
     <a routerLink="/verein" class="nav-link">VEREIN</a>
-    <img class="wappen" src="assets/wappen2.png" alt="wappen">
+  </nav>
+  <div class="logo-placeholder"></div>
+  <nav class="nav-right">
     <a routerLink="/tross" class="nav-link">TROSS</a>
     <a routerLink="/bf" class="nav-link">BILDER & FAKTEN</a>
     <a routerLink="/neuigkeiten" class="nav-link">NEUIGKEITEN</a>
   </nav>
 </header>
+<div class="logo-container">
+  <img class="wappen" src="assets/wappen2.png" alt="wappen">
+</div>
 <button mat-icon-button [matMenuTriggerFor]="menu" class="hamburger-menu">
   <mat-icon>menu</mat-icon>
 </button>

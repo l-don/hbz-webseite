@@ -20,6 +20,14 @@ html, body {
   margin: 12px;
 }
 
+.logo-container {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 0; /* oder anpassen, um es vertikal zu zentrieren */
+  z-index: 2; /* Stellt sicher, dass das Logo über den anderen Elementen liegt */
+}
+
 .header-bar {
   width: 100%;
   height: auto;
@@ -35,6 +43,21 @@ html, body {
 .wappen{
   width: 80px;
   margin-top: 10px;
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  flex: 1;
+}
+
+.nav-left {
+  justify-content: flex-end;
+  padding-right: 60px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
+}
+
+.nav-right {
+  justify-content: flex-start;
+  padding-left: 60px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
 }
 
 .header-bar nav {
@@ -124,5 +147,10 @@ html, body {
   }
   .hamburger-menu{
     display: block ;
+  }
+
+  .logo-container {
+    position: absolute;
+    margin-top: 20px;
   }
 }
