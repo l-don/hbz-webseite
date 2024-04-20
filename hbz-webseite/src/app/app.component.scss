@@ -66,8 +66,8 @@ html, body {
 
 .header-bar nav a { /* Stil für die Link-Elemente */
   /* Fügt Abstand zwischen den Links hinzu */
-  margin-right: 25px;
-  margin-left: 25px;
+  margin-right: 2vw;
+  margin-left: 2vw;
   background-color: transparent;
   cursor: pointer;
   text-decoration: none;
@@ -75,6 +75,7 @@ html, body {
   border: none; /* Entfernt den Button-Rahmen */
   outline: none; /* Entfernt den Fokus-Rahmen */
   font-family: "Frank Ruehl CLM",serif;
+  font-size: 14px;
 }
 
 .header-bar nav a:hover {

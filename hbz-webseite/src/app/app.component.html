@@ -1,19 +1,19 @@
-<div class ="header-bg"></div>
+<div class="header-bg"></div>
 <header class="header-bar">
   <nav class="nav-left">
-    <a routerLink="/main" class="nav-link">HOME</a>
-    <a routerLink="/sponsoren" class="nav-link">SPONSOREN</a>
     <a routerLink="/verein" class="nav-link">VEREIN</a>
+    <a routerLink="/tross" class="nav-link">TROSS</a>
+    <a routerLink="/anmeldung" class="nav-link">ANMELDUNG</a>
   </nav>
   <div class="logo-placeholder"></div>
   <nav class="nav-right">
-    <a routerLink="/tross" class="nav-link">TROSS</a>
-    <a routerLink="/bf" class="nav-link">BILDER & FAKTEN</a>
-    <a routerLink="/neuigkeiten" class="nav-link">NEUIGKEITEN</a>
+    <a routerLink="/tross" class="nav-link">NEUIGKEITEN</a>
+    <a routerLink="/bf" class="nav-link">SPONSOREN</a>
+    <a routerLink="/neuigkeiten" class="nav-link">GÄSTEBUCH</a>
   </nav>
 </header>
 <div class="logo-container">
-  <img class="wappen" src="assets/wappen2.png" alt="wappen">
+  <a routerLink="/main" class="nav-link"><img class="wappen" src="assets/wappen2.png" alt="wappen"></a>
 </div>
 <!-- Hamburger-Menü-Button -->
 <button mat-icon-button (click)="toggleMenu()" class="hamburger-menu">
