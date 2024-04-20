@@ -1,4 +1,4 @@
-
+@import '../styles.scss';
 html, body {
   margin: 0;
   padding: 0;
@@ -33,21 +33,19 @@ html, body {
   z-index: 2; /* Stellt sicher, dass das Logo über den anderen Elementen liegt */
 }
 
+.wappen{
+  width: 80px;
+  margin-top: 10px;
+}
 .header-bar {
   width: 100%;
-  height: auto;
+  height: $header-height;
   background-color: transparent;
   display: flex;
-
   justify-content: center;
   align-items: center;
   margin: 0;
   position: fixed;
-}
-
-.wappen{
-  width: 80px;
-  margin-top: 10px;
 }
 
 .nav-left, .nav-right {
@@ -65,14 +63,11 @@ html, body {
   padding-left: 40px; /* Abstand anpassen, um Platz für das Wappen zu schaffen */
 }
 
-.header-bar nav {
-  display: flex;
-}
 
 .header-bar nav a { /* Stil für die Link-Elemente */
   /* Fügt Abstand zwischen den Links hinzu */
-  margin: 20px 10px 0;
-  padding: 5px 15px;
+  margin-right: 25px;
+  margin-left: 25px;
   background-color: transparent;
   cursor: pointer;
   text-decoration: none;
@@ -89,7 +84,7 @@ html, body {
 .header-bg{
   width: 100%;
   position: fixed;
-  height: 66px;
+  height: $header-height;
   background-color: #771c1c;
 }
 
