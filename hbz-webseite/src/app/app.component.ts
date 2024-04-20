@@ -6,11 +6,12 @@ import {MatIcon} from "@angular/material/icon";
 import {AsyncPipe, NgIf} from "@angular/common";
 import {MatAnchor, MatButtonModule, MatIconButton} from "@angular/material/button";
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
+import {FooterComponent} from "./footer/footer.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem],
+  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
