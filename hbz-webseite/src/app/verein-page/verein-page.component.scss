@@ -1,5 +1,7 @@
 @import '../../styles.scss';
 
+
+
 .main {
   background-color: #ffeeda;
   display: flex;
@@ -33,6 +35,11 @@
   height: auto; /* Höhe passt sich automatisch an, um das Seitenverhältnis beizubehalten */
   padding-top:60px;
 }
+.left img {
+  width: 100%;  /* Bild füllt den gesamten verfügbaren Bereich aus */
+  height: auto; /* Höhe passt sich automatisch an, um das Seitenverhältnis beizubehalten */
+  margin-top: -20px; //Damit Überschrift und bild auf einer höhe anfangen
+}
 
 .left {
     padding-top:40px;
@@ -40,16 +47,21 @@
     width:100%;
     height: 100%;
 
-    & p {
-      line-height: 30px;}
+    & p {line-height: 30px;}
 
-  }
+}
 
 .intro-text{
   font-size:0;
+  height:0
 }
 
 .geschichte {
+  }
+
+.vereinsziele{
+
+  padding-left: 50px
   }
 
 @media (max-width: 768px) {
