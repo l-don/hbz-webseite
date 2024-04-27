@@ -10,15 +10,21 @@
 
 }
 
+.container{
+    padding-left:50px; //evtl für handy anpassen
+    padding-right:50px;
+    max-width: 1000px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
 /* layout.component.css */
 .left-right {
   display: grid;
   grid-template-columns: 50% 50%; /* Definiert die Breite der Spalten */
   justify-items: center; /* Zentriert die Inhalte horizontal */
   align-items: start; /* Start-Ausrichtung vertikal für alle Inhalte */
-  max-width: 1000px;
-  margin-right: auto;
-  margin-left: auto;
+
 }
 
 
@@ -39,4 +45,30 @@
 
   }
 
+.intro-text{
+  font-size:0;
+}
+
+.geschichte {
+  }
+
+@media (max-width: 768px) {
+
+  .intro-text{
+    $dist: 200px;
+    text-align: center;
+    margin-top: -$dist;
+    margin-bottom: $dist;
+    font-size: 11vw;
+    line-height: 11vw;
+    color: white;
+    height: 0;
+    $boarder-width: 2px;
+      text-shadow:
+        -$boarder-width (-$boarder-width) 0 #000,
+        $boarder-width (-$boarder-width) 0 #000,
+        -$boarder-width ($boarder-width) 0 #000,
+        $boarder-width ($boarder-width) 0 #000;
+  }
+}
 
