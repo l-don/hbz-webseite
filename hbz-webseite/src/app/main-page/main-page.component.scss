@@ -1,11 +1,6 @@
 @import '../../styles.scss';
 
-.hero-img {
-  width: 100%;
-  object-fit: cover;
-  height: 400px;
-  margin-top: $header-height;
-}
+
 .main {
   background-color: #ffeeda;
   display: flex;
@@ -113,6 +108,12 @@
     line-height: 11vw;
     color: white;
     height: 0;
+    $boarder-width: 2px;
+      text-shadow:
+        -$boarder-width (-$boarder-width) 0 #000,
+        $boarder-width (-$boarder-width) 0 #000,
+        -$boarder-width ($boarder-width) 0 #000,
+        $boarder-width ($boarder-width) 0 #000;
   }
 }
 

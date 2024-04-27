@@ -1,0 +1,13 @@
+@import '../../styles.scss';
+.hero-img {
+  width: 100%;
+  object-fit: cover;
+  height: 400px;
+  margin-top: $header-height;
+}
+@media (max-width: 768px) {
+  .hero-img{
+    height:100vh;
+    margin-top: 0;
+  }
+}
