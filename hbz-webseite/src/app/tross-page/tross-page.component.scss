@@ -51,6 +51,16 @@
   height:0
 }
 
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-gap: 10px;
+}
+
+button{
+  font-size: 18px;
+}
+
 @media (max-width: 768px) {
 
   .intro-text{
