@@ -46,6 +46,7 @@ html, body {
   align-items: center;
   margin: 0;
   position: fixed;
+  z-index: 1;
 }
 
 .nav-left, .nav-right {
@@ -87,6 +88,7 @@ html, body {
   position: fixed;
   height: $header-height;
   background-color: #771c1c;
+  z-index: 1;
 }
 
 @media (max-width: 768px) {
