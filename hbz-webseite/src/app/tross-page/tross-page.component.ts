@@ -16,8 +16,15 @@ import {NgIf} from "@angular/common";
 })
 export class TrossPageComponent {
   slideshowVisible: boolean = false;
+  selectedYear: number | null = null;
 
-  toggleSlideshow() {
-    this.slideshowVisible = !this.slideshowVisible;
+  toggleSlideshow(year: number) {
+    if (this.selectedYear === year) {
+      this.slideshowVisible = !this.slideshowVisible;
+      this.selectedYear = null;
+    } else {
+      this.selectedYear = year;
+      this.slideshowVisible = true;
+    }
   }
 }
