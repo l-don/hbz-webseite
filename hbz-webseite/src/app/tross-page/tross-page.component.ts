@@ -20,9 +20,9 @@ export class TrossPageComponent {
   slideshowVisible: boolean = false;
   selectedYear: number | null = null;
   meineBilder = [
-    { src: "../assets/Home/Home_rechts.jpg", alt: "Das Zeltlager", desc: "Beschreibung von  1" },
-    { src: "assets/Home/Home_links.jpg", alt: "Auf Tour", desc: "Beschreibung von Bild 2" },
-    { src: "../assets/main_left.jpg", alt: "Die Mahlzeiten", desc: "Beschreibung von Bild 3" }
+    { src: "assets/Home/Home_rechts.jpg", alt: "Das Zeltlager", desc: "Das Zeltlager" },
+    { src: "assets/Home/Home_links.jpg", alt: "Auf Tour", desc: "Auf Tour" },
+    { src: "assets/main_left.jpg", alt: "Die Mahlzeiten", desc: "Die Mahlzeiten" }
   ];
 
   toggleSlideshow(year: number) {
