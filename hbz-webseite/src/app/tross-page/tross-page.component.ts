@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import {BannerImgComponent} from "../banner-img/banner-img.component";
 import {SlideshowComponent} from "../slideshow/slideshow.component";
 import {NgIf} from "@angular/common";
-import {DreiBilderComponent} from "../drei-bilder/drei-bilder.component";
 import {DualSlideshowComponent} from "../dual-slideshow/dual-slideshow.component";
 import { HttpClientModule } from '@angular/common/http';
 
@@ -13,7 +12,6 @@ import { HttpClientModule } from '@angular/common/http';
     BannerImgComponent,
     SlideshowComponent,
     NgIf,
-    DreiBilderComponent,
     DualSlideshowComponent,
     HttpClientModule
   ],
