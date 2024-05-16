@@ -23,6 +23,7 @@
   grid-template-columns: 80% 20%; /* Definiert die Breite der Spalten */
   justify-items: center; /* Zentriert die Inhalte horizontal */
   align-items: start; /* Start-Ausrichtung vertikal für alle Inhalte */
+  margin-top: 100px;
 
 }
 
@@ -63,8 +64,8 @@ button{
   text-align: center;
 }
 
-.slideshow{
-  width: 100%;
+.leistungen p{
+  font-size: 20px;
 }
 
 @media (max-width: 768px) {

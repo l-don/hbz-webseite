@@ -1,0 +1,16 @@
+.dual-slideshow {
+  display: flex;
+  justify-content: space-between;
+
+  .slideshow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45%;
+
+    .text-below {
+      margin-top: 10px;
+      text-align: center;
+    }
+  }
+}

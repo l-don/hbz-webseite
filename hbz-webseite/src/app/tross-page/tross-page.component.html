@@ -5,17 +5,21 @@
     <div class="left-right">
       <div class="left">
         <h1>Tross</h1>
-        <p>Otto von Wettin, später Otto der Reiche genannt, rief 1156 Franken, Thüringer, Niedersachsen und Flamen als Siedler in die Mark Meißen. In harter Arbeit rodeten Sie den Urwald und legten Waldhufendörfer an. Diese Landnahme im mittelsächsischen Gebirgsvorland hatte für die Region eine große Bedeutung.<br>
+        <p>Otto von Wettin, später Otto der Reiche genannt, rief 1156 Franken, Thüringer, Niedersachsen und Flamen als
+          Siedler in die Mark Meißen. In harter Arbeit rodeten Sie den Urwald und legten Waldhufendörfer an. Diese
+          Landnahme im mittelsächsischen Gebirgsvorland hatte für die Region eine große Bedeutung.<br>
           Die Besiedlung der Striegistäler ist im wesentlichen für den Zeitraum um 1156 bis 1162 verbürgt.<br>
           Der Besiedlungszug - ist deutschlandweit seit 1994 das einzigste Kulturspektakel dieser Art.<br>
           Alljährlich wird er nach alter Überlieferung in den Landen der Striegistäler durchgeführt.<br>
           Bestehend aus 15 Planwagen mit ihren Pferden, 150 Siedlern und Kindern, Eselgespann, Ziegen,<br>
-          Hunden und anderem Getier bewegt sich der Tross an 4 Tagen jeweils ca. 15-25 km von Rastplatz zu Rastplatz, und das bei jedem Wetter.<br>
-          Das Anliegen unseres Vereins ist es, mit allen Beteiligten die Geschichte der Besiedlung unserer Heimat nachzuempfinden und durch unser Erscheinen in den Städten und Dörfern altes Brauchtum zu veranschaulichen.<br>
+          Hunden und anderem Getier bewegt sich der Tross an 4 Tagen jeweils ca. 15-25 km von Rastplatz zu Rastplatz,
+          und das bei jedem Wetter.<br>
+          Das Anliegen unseres Vereins ist es, mit allen Beteiligten die Geschichte der Besiedlung unserer Heimat
+          nachzuempfinden und durch unser Erscheinen in den Städten und Dörfern altes Brauchtum zu veranschaulichen.<br>
         </p>
       </div>
       <div class="right">
-        <img src="../../assets/Verein/Vorstand.jpg">
+        <img src="assets/Verein/Vorstand.jpg">
       </div>
     </div>
     <div style="height: 50px"></div>
@@ -39,19 +43,32 @@
         <button class="custom-button-1">2024</button>
       </div>
       <h1 class="selectedYear" *ngIf="selectedYear">{{ selectedYear }}</h1>
-      <app-slideshow *ngIf="slideshowVisible" class="slideshow" [images]="['../../assets/Verein/Vorstand.jpg', '../../assets/Verein/Vereinsziele.jpg']"></app-slideshow>
     </div>
 
     <div style="height: 50px"></div>
     <h1>Impressionen</h1>
-    <app-drei-bilder [bilder]="meineBilder"></app-drei-bilder>
-    <div style="height: 50px"></div>
+    <app-dual-slideshow folder1="assets/Slideshow_imgs/left" folder2="assets/Slideshow_imgs/right"></app-dual-slideshow>
+
     <div class="left-right">
-      <div class="left">
+      <div class="left leistungen">
         <h1>Leistungen</h1>
+        <ul>
+          <li><p>Vollverpflegung (4 Mahlzeiten am Tag)</p>
+          <li><p>Unterkunft in Zelten</p>
+          <li><p>Musikanten, Tanz, Jonglage, Bauerntheater(, Feuershow)</p>
+          <li><p>Reiterspiele / Siedlerspiele</p>
+          <li><p>historische Basteleien für Kinder</p>
+          <li><p>Siedlerfest mit Gelage</p>
+          <li><p>kostenloses Esel- und Ponyreiten</p>
+          <li><p>1 Flasche Wasser pro Tag</p>
+          <li><p>Lagerfeuerromantik</p>
+          <li><p>und natürlich kaltes Wasser für die Hygiene!</p>
+        </ul>
+
       </div>
       <div class="right">
         <h1>Streckenplan</h1>
+        <img src="assets/main_right.jpg">
       </div>
     </div>
   </div>
