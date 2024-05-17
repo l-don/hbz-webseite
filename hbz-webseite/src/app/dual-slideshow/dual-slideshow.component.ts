@@ -21,16 +21,14 @@ export class DualSlideshowComponent implements OnInit {
     this.loadImages();
   }
 
-  loadImages() {
-    this.images1 = this.getImagesFromFolder(this.folder1, 'Abschnitt2_', 9);
-    this.images2 = this.getImagesFromFolder(this.folder2, 'Abschnitt3_', 6);
+  async loadImages() {
+    this.images1 = await this.getImagesFromFolder(this.folder1);
+    this.images2 = await this.getImagesFromFolder(this.folder2);
   }
 
-  getImagesFromFolder(folder: string, prefix: string, count: number): string[] {
-    let images: string[] = [];
-    for (let i = 1; i <= count; i++) {
-      images.push(`${folder}/${prefix}${i}.jpg`);
-    }
-    return images;
+  async getImagesFromFolder(folder: string): Promise<string[]> {
+    const response = await fetch(`${folder}/images.json`);
+    const data = await response.json();
+    return data.images.map((image: string) => `${folder}/${image}`);
   }
 }
