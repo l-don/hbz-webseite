@@ -1,9 +1,13 @@
 import { Component, Input } from '@angular/core';
+import {NgIf} from "@angular/common";
 
 @Component({
   selector: 'app-slideshow',
   templateUrl: './slideshow.component.html',
   standalone: true,
+  imports: [
+    NgIf
+  ],
   styleUrls: ['./slideshow.component.scss']
 })
 export class SlideshowComponent {

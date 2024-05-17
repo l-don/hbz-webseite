@@ -1,8 +1,9 @@
 <div class="slideshow">
   <div class="image-container">
-    <button class="prev-button" (click)="prevSlide()">&#9664;</button>
+    <button *ngIf="images.length > 1" class="prev-button" (click)="prevSlide()">&#9664;</button>
     <img [src]="currentSlide" alt="Slideshow Image">
-    <button class="next-button" (click)="nextSlide()">&#9654;</button>
+    <button *ngIf="images.length > 1" class="next-button" (click)="nextSlide()">&#9654;</button>
   </div>
 </div>
+
 
