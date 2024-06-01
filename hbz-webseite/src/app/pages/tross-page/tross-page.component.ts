@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import {BannerImgComponent} from "../banner-img/banner-img.component";
-import {SlideshowComponent} from "../slideshow/slideshow.component";
+import {BannerImgComponent} from "../../banner-img/banner-img.component";
+import {SlideshowComponent} from "../../slideshow/slideshow.component";
 import {NgIf} from "@angular/common";
-import {DualSlideshowComponent} from "../dual-slideshow/dual-slideshow.component";
+import {DualSlideshowComponent} from "../../dual-slideshow/dual-slideshow.component";
 import { HttpClientModule } from '@angular/common/http';
 
 @Component({

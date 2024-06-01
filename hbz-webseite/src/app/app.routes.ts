@@ -1,14 +1,22 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import {MainPageComponent} from "./main-page/main-page.component";
-import {VereinPageComponent} from "./verein-page/verein-page.component";
-import {TrossPageComponent} from "./tross-page/tross-page.component";
+import {MainPageComponent} from "./pages/main-page/main-page.component";
+import {VereinPageComponent} from "./pages/verein-page/verein-page.component";
+import {TrossPageComponent} from "./pages/tross-page/tross-page.component";
+import {AnmeldungPageComponent} from "./pages/anmeldung-page/anmeldung-page.component";
+import {NeuigkeitenPageComponent} from "./pages/neuigkeiten-page/neuigkeiten-page.component";
+import {SponsorenPageComponent} from "./pages/sponsoren-page/sponsoren-page.component";
+import {GaestebuchPageComponent} from "./pages/gaestebuch-page/gaestebuch-page.component";
 
 export const routes: Routes = [
   { path: 'main', component: MainPageComponent },
   { path: 'verein', component: VereinPageComponent },
   { path: 'tross', component: TrossPageComponent },
+  { path: 'anmeldung', component: AnmeldungPageComponent },
+  { path: 'neuigkeiten', component: NeuigkeitenPageComponent },
+  { path: 'sponsoren', component: SponsorenPageComponent },
+  { path: 'gästebuch', component: GaestebuchPageComponent },
   { path: '', redirectTo: '/main', pathMatch: 'full' },
 ];
 

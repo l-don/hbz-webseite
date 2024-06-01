@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {RouterLink} from "@angular/router";
-import {BannerImgComponent} from "../banner-img/banner-img.component";
+import {BannerImgComponent} from "../../banner-img/banner-img.component";
 import {NgForOf, NgOptimizedImage} from "@angular/common";
 
 

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {BannerImgComponent} from "../banner-img/banner-img.component";
+import {BannerImgComponent} from "../../banner-img/banner-img.component";
 
 @Component({
   selector: 'app-verein-page',
