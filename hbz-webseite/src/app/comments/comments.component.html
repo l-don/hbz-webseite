@@ -1,1 +1,6 @@
-<p>comments works!</p>
+<h1>Comments:</h1>
+<div *ngFor="let comment of commentsService.commentsSig()">
+  <h3>{{ comment.author }}</h3>
+  <p>{{ comment.message }}</p>
+  <hr />
+</div>

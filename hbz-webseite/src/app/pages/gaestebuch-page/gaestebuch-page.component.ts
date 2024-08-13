@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
 import {BannerImgComponent} from "../../banner-img/banner-img.component";
+import {CommentsComponent} from "../../comments/comments.component";
 
 @Component({
   selector: 'app-gaestebuch-page',
   standalone: true,
-    imports: [
-        BannerImgComponent
-    ],
+  imports: [
+    BannerImgComponent,
+    CommentsComponent
+  ],
   templateUrl: './gaestebuch-page.component.html',
   styleUrl: './gaestebuch-page.component.scss'
 })
