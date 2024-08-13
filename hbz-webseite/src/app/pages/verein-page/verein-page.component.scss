@@ -82,5 +82,9 @@
         -$boarder-width ($boarder-width) 0 #000,
         $boarder-width ($boarder-width) 0 #000;
   }
+
+  .left-right {
+    grid-template-columns: 100%; /* Mobile-Ansicht: eine Spalte */
+  }
 }
 
