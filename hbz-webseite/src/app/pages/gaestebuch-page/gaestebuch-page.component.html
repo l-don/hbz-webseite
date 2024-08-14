@@ -5,6 +5,19 @@
     <p>Liebe Siedler und alle die es werden wollen ;-)<br>
       Hier ensteht das Gästebuch!<br>
     </p>
+    <h2>Kommentare</h2>
+    <app-comments></app-comments>
+    <h2 class="heading-input-section">Schreibe selbst einen Kommentar</h2>
+    <div class="input-section">
+      <div class="input-container">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" [(ngModel)]="newCommentAuthor" required>
+      </div>
+      <div class="input-container">
+        <label for="message">Nachricht</label>
+        <textarea id="message" name="message" [(ngModel)]="newCommentMessage" rows="4" required></textarea>
+      </div>
+      <button class="custom-button-1" (click)="submitComment()">Absenden</button>
+    </div>
   </div>
-  <app-comments></app-comments>
 </div>

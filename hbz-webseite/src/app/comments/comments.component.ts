@@ -18,10 +18,7 @@ export class CommentsComponent implements OnInit {
 
   ngOnInit(): void {
     this.commentsFirebaseService.getComments().subscribe((comments) => {
-      //use comments here
       this.commentsService.commentsSig.set(comments);
     });
-    this.commentsService.addComment('John Doe', 'This is a great guestbook!', '1');
-    this.commentsService.addComment('Jane Smith', 'Loved visiting your site!', '2');
   }
 }

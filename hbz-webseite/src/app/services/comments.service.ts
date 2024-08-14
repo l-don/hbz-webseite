@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import {CommentInterface} from "../types/comment.interface";
+import {CommentsFirebaseService} from "./comments-firebase.service";
 
 
 @Injectable({
@@ -8,14 +9,13 @@ import {CommentInterface} from "../types/comment.interface";
 export class CommentsService {
   commentsSig = signal<CommentInterface[]>([]);
 
-  addComment(author: string, message: string, id: string): void {
-    const newComment: CommentInterface = {
-      author,
-      message,
-      id,
-    };
-    this.commentsSig.update((comments) => [...comments, newComment]);
-  }
+  constructor(private commentsFirebaseService: CommentsFirebaseService) {}
 
-  // Other CRUD operations as needed
+  addComment(author: string, message: string): void {
+    const newComment = { author, message };
+    this.commentsFirebaseService.addComment(newComment).subscribe((id) => {
+      const fullComment: CommentInterface = { ...newComment, id };
+      this.commentsSig.update((comments) => [...comments, fullComment]);
+    });
+  }
 }
