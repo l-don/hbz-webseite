@@ -7,11 +7,12 @@ import {AsyncPipe, NgIf} from "@angular/common";
 import {MatAnchor, MatButtonModule, MatIconButton} from "@angular/material/button";
 import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 import {FooterComponent} from "./footer/footer.component";
+import { RecaptchaModule } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem, FooterComponent],
+  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem, FooterComponent, RecaptchaModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

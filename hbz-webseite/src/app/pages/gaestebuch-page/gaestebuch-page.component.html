@@ -17,7 +17,11 @@
         <label for="message">Nachricht</label>
         <textarea id="message" name="message" [(ngModel)]="newCommentMessage" rows="4" required></textarea>
       </div>
-      <button class="custom-button-1" (click)="submitComment()">Absenden</button>
+      <label style="margin-bottom: 5px">Bitte löse das captcha um den Sendebutton anzuzeigen</label>
+      <div class="recaptcha-container">
+        <re-captcha (resolved)="onCaptchaResolved($event)" siteKey="6LekoCYqAAAAAI1AaWpwAVl6pz9SW_gjPfmiL7Mf"></re-captcha>
+      </div>
+      <button class="custom-button-1" *ngIf="captchaVerified" (click)="submitComment()">Absenden</button>
     </div>
   </div>
 </div>
