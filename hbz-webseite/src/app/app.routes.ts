@@ -8,6 +8,8 @@ import {AnmeldungPageComponent} from "./pages/anmeldung-page/anmeldung-page.comp
 import {NeuigkeitenPageComponent} from "./pages/neuigkeiten-page/neuigkeiten-page.component";
 import {SponsorenPageComponent} from "./pages/sponsoren-page/sponsoren-page.component";
 import {GaestebuchPageComponent} from "./pages/gaestebuch-page/gaestebuch-page.component";
+import {EinblickePageComponent} from "./pages/einblicke-page/einblicke-page.component";
+import {NeusiedlerPageComponent} from "./pages/neusiedler-page/neusiedler-page.component";
 
 export const routes: Routes = [
   { path: 'main', component: MainPageComponent },
@@ -17,6 +19,8 @@ export const routes: Routes = [
   { path: 'neuigkeiten', component: NeuigkeitenPageComponent },
   { path: 'sponsoren', component: SponsorenPageComponent },
   { path: 'gästebuch', component: GaestebuchPageComponent },
+  { path: 'einblicke', component: EinblickePageComponent },
+  { path: 'neusiedler', component: NeusiedlerPageComponent },
   { path: '', redirectTo: '/main', pathMatch: 'full' },
 ];
 

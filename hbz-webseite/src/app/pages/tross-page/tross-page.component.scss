@@ -1,23 +1,5 @@
 @import '../../../styles';
 
-.main {
-  background-color: #ffeeda;
-  display: flex;
-  flex-direction: column;
-  min-height: 800px;
-  overflow: hidden;
-  padding-bottom: 20px;
-
-}
-
-.container{
-  padding-left:50px; //evtl für handy anpassen
-  padding-right:50px;
-  max-width: 1000px;
-  margin-right: auto;
-  margin-left: auto;
-}
-
 .left-right {
   display: grid;
   grid-template-columns: 80% 20%; /* Definiert die Breite der Spalten */
@@ -44,11 +26,6 @@
   height: 100%;
 }
 
-.intro-text{
-  font-size:0;
-  height:0
-}
-
 .button-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
@@ -70,23 +47,6 @@ button{
 
 @media (max-width: 768px) {
 
-  .intro-text{
-    $dist: 200px;
-    text-align: center;
-    margin-top: -$dist;
-    margin-bottom: $dist;
-    font-size: 11vw;
-    line-height: 11vw;
-    color: white;
-    height: 0;
-    $boarder-width: 2px;
-    text-shadow:
-      -$boarder-width (-$boarder-width) 0 #000,
-      $boarder-width (-$boarder-width) 0 #000,
-      -$boarder-width ($boarder-width) 0 #000,
-      $boarder-width ($boarder-width) 0 #000;
-  }
-  
   .left-right {
     grid-template-columns: 100%; /* Mobile-Ansicht: eine Spalte */
   }
