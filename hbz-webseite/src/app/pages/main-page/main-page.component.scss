@@ -12,6 +12,11 @@
 
 }
 
+.heading.intro-text {
+  margin-top: -200px; /* Verschiebt den Heading um 200px nach oben */
+}
+
+
 .grid-container {
   display: grid;
   grid-template-columns: 25% 50% 25%; /* Definiert die Breite der Spalten */
