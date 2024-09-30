@@ -50,7 +50,6 @@
   text-align: center; /* Zentriert den Text innerhalb des Containers */
 }
 
-
 .right-image {
   padding-top: 200px; /* Verschiebt das rechte Bild nach unten */
   height: 100%;
@@ -83,22 +82,6 @@
     margin-top: 0;
   }
 
-  .intro-text{
-
-    $dist: 400px;
-    margin-top: -$dist;
-    margin-bottom: $dist;
-    font-size: 11vw;
-    line-height: 11vw;
-    color: white;
-    height: 0;
-    $boarder-width: 2px;
-      text-shadow:
-        -$boarder-width (-$boarder-width) 0 #000,
-        $boarder-width (-$boarder-width) 0 #000,
-        -$boarder-width ($boarder-width) 0 #000,
-        $boarder-width ($boarder-width) 0 #000;
-  }
 }
 
 
