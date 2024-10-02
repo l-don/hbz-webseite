@@ -1,44 +1,46 @@
 <div class="main">
   <app-banner-img [imgSrc]="'assets/banner/Bannerfoto_Home.jpg'"></app-banner-img>
-  <h1 class="heading intro-text">HOME</h1>
+  <div class="container">
+    <h1 class="heading intro-text">HOME</h1>
+    <div class="grid-container">
+      <div class="left-image">
+        <img src="assets/Home/Home_links.jpg" alt="left-image">
+      </div>
+      <div class="center">
+        <h1>Erlebe ein mittelalterliches Abenteuer</h1>
+        <p class="info-text-intro">
+          Hallo und herzlich willkommen auf den Seiten des Verein "Historischer Besiedlungszug A.D. 1156" e. V.<br/>
+        </p>
+        <div style="height: 10px"></div>
+        <p class="info-text">
+          Wir möchten Dich entführen in eine Zeit im 12. Jahrhundert, in der die Besiedlung des heutigen Sachsen begann.
+          In mittelalterlicher Gewandung ziehen wir durch die Landen mit Planwagen und Pferden, begleitet von Musik,
+          Gaukelei und Theateraufführungen. Abends lassen wir den Tag am Lagerfeuer mit Gesang unter freiem
+          Sternenhimmel
+          ausklingen. Erfahre Abenteuer, Freiheit, Lagerleben und Freundschaften, aber auch Beschwerlichkeiten. Eine
+          Zeitreise ins Jahr 1156, die eine perfekte Gelegenheit bietet vom Alltag abzuschalten und zur Ruhe zu kommen.
+        </p>
+        <button class="custom-button-1">Mitmachen</button>
+        <h1>Kontakt</h1>
+        <div class="input-container">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="input-container">
+          <label for="email">E-Mail</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="input-container">
+          <label for="message">Nachricht</label>
+          <textarea id="message" name="message" rows="4" required></textarea>
+        </div>
 
-  <div class="grid-container">
-    <div class="left-image">
-      <img src="assets/Home/Home_links.jpg" alt="left-image">
-    </div>
-    <div class="center">
-      <h1>Erlebe ein mittelalterliches Abenteuer</h1>
-      <p class="info-text-intro">
-        Hallo und herzlich willkommen auf den Seiten des Verein "Historischer Besiedlungszug A.D. 1156" e. V.<br/>
-      </p>
-      <div style="height: 10px"></div>
-      <p class="info-text">
-        Wir möchten Dich entführen in eine Zeit im 12. Jahrhundert, in der die Besiedlung des heutigen Sachsen begann.
-        In mittelalterlicher Gewandung ziehen wir durch die Landen mit Planwagen und Pferden, begleitet von Musik,
-        Gaukelei und Theateraufführungen. Abends lassen wir den Tag am Lagerfeuer mit Gesang unter freiem Sternenhimmel
-        ausklingen. Erfahre Abenteuer, Freiheit, Lagerleben und Freundschaften, aber auch Beschwerlichkeiten. Eine
-        Zeitreise ins Jahr 1156, die eine perfekte Gelegenheit bietet vom Alltag abzuschalten und zur Ruhe zu kommen.
-      </p>
-      <button class="custom-button-1">Mitmachen</button>
-      <h1 class="heading">Kontakt</h1>
-      <div class="input-container">
-        <label for="name">Name</label>
-        <input type="text" id="name" name="name" required>
+        <!-- Submit Button -->
+        <button class="custom-button-1">Absenden</button>
       </div>
-      <div class="input-container">
-        <label for="email">E-Mail</label>
-        <input type="email" id="email" name="email" required>
+      <div class="right-image">
+        <img src="assets/Home/Home_rechts.jpg" alt="right-image">
       </div>
-      <div class="input-container">
-        <label for="message">Nachricht</label>
-        <textarea id="message" name="message" rows="4" required></textarea>
-      </div>
-
-      <!-- Submit Button -->
-      <button class="custom-button-1">Absenden</button>
-    </div>
-    <div class="right-image">
-      <img src="assets/Home/Home_rechts.jpg" alt="right-image">
     </div>
   </div>
 </div>
