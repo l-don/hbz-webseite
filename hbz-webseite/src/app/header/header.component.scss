@@ -64,9 +64,12 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
   z-index: 2;
+}
+
+.mobile-logo{
+  visibility: hidden;
 }
 
 .wappen {
@@ -141,6 +144,10 @@
     position: absolute;
     margin-top: 20px;
   }
+
+  .mobile-logo{
+    visibility: visible;
+    }
   .wappen {
     width: 26vw;
     margin-top: 70px;

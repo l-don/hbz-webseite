@@ -19,11 +19,14 @@
     <a routerLink="/gästebuch" class="nav-link">GÄSTEBUCH</a>
   </nav>
 
-  <!-- Hamburger-Menü-Button -->
-  <button mat-icon-button (click)="toggleMenu()" class="hamburger-menu">
-    <mat-icon class="hamburger-icon">menu</mat-icon>
-  </button>
 </header>
+<div class="logo-container mobile-logo">
+  <a routerLink="/main" class="nav-link"><img class="wappen" src="assets/wappen2.png" alt="wappen"></a>
+</div>
+<!-- Hamburger-Menü-Button -->
+<button mat-icon-button (click)="toggleMenu()" class="hamburger-menu">
+  <mat-icon class="hamburger-icon">menu</mat-icon>
+</button>
 
 <!-- Fullscreen-Menü -->
 <div class="fullscreen-menu" [class.open]="menuOpen">
