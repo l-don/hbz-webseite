@@ -57,6 +57,13 @@
   margin: 5px; /* Fügen Sie Abstand zwischen den Icons hinzu */
   cursor: pointer;
 }
+
+.footer-text{
+  font-size: 10pt;
+  font-family: "Arial", serif;
+  font-weight: 600;
+  text-align: left;
+  }
 @media (max-width: 768px) {
   .footer h3{
     font-family: 'Playfair Display', serif;
