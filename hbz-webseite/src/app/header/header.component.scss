@@ -18,11 +18,19 @@
   margin: 0;
   position: fixed;
   z-index: 1;
+
+  /* Verhindert, dass der Inhalt umbricht */
+  white-space: nowrap;
 }
 
 .nav-left, .nav-right {
   display: flex;
-  flex: 1;
+
+  /* Verhindert das Schrumpfen */
+  flex-shrink: 0;
+
+  /* Optional: Versteckt überlaufende Elemente */
+  overflow: hidden;
 }
 
 .nav-left {
@@ -36,8 +44,7 @@
 }
 
 .header-bar nav a {
-  margin-right: 2vw;
-  margin-left: 2vw;
+  margin: 0 calc(5px + ((100vw - 768px)/25));
   background-color: transparent;
   cursor: pointer;
   text-decoration: none;
@@ -46,6 +53,7 @@
   outline: none;
   font-family: "Frank Ruehl CLM", serif;
   font-size: 14px;
+  white-space: nowrap; /* Verhindert Umbruch der einzelnen Links */
 }
 
 .header-bar nav a:hover {
@@ -53,10 +61,11 @@
 }
 
 .logo-container {
-  position: fixed;
+  position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  top: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
   z-index: 2;
 }
 
@@ -145,4 +154,5 @@
   .nav-right {
     font-size: 11px;
   }
+
 }
