@@ -1,0 +1,41 @@
+<div class="header-bg"></div>
+<header class="header-bar">
+  <nav class="nav-left">
+    <a routerLink="/verein" class="nav-link">VEREIN</a>
+    <a routerLink="/tross" class="nav-link">TROSS</a>
+    <a routerLink="/einblicke" class="nav-link">EINBLICKE</a>
+    <a routerLink="/anmeldung" class="nav-link">ANMELDUNG</a>
+  </nav>
+  <div class="logo-placeholder"></div>
+  <nav class="nav-right">
+    <a routerLink="/neusiedler" class="nav-link">NEUSIEDLER</a>
+    <a routerLink="/neuigkeiten" class="nav-link">NEUIGKEITEN</a>
+    <a routerLink="/sponsoren" class="nav-link">SPONSOREN</a>
+    <a routerLink="/gästebuch" class="nav-link">GÄSTEBUCH</a>
+  </nav>
+</header>
+<div class="logo-container">
+  <a routerLink="/main" class="nav-link"><img class="wappen" src="assets/wappen2.png" alt="wappen"></a>
+</div>
+<!-- Hamburger-Menü-Button -->
+<button mat-icon-button (click)="toggleMenu()" class="hamburger-menu">
+  <mat-icon class="hamburger-icon">menu</mat-icon>
+</button>
+
+<!-- Fullscreen-Menü -->
+<div class="fullscreen-menu" [class.open]="menuOpen">
+  <button mat-icon-button (click)="toggleMenu()" class="close-menu">
+    <mat-icon class="close-icon">close</mat-icon>
+  </button>
+  <nav class="menu-navigation">
+    <a routerLink="/main" (click)="toggleMenu()">HOME</a>
+    <a routerLink="/sponsoren" (click)="toggleMenu()">SPONSOREN</a>
+    <a routerLink="/verein" (click)="toggleMenu()">VEREIN</a>
+    <a routerLink="/tross" (click)="toggleMenu()">TROSS</a>
+    <a routerLink="/gästebuch" (click)="toggleMenu()">GÄSTEBUCH</a>
+    <a routerLink="/anmeldung" (click)="toggleMenu()">ANMELDUNG</a>
+    <a routerLink="/neuigkeiten" (click)="toggleMenu()">NEUIGKEITEN</a>
+    <a routerLink="/neusiedler" (click)="toggleMenu()">NEUSIEDLER</a>
+    <a routerLink="/einblicke" (click)="toggleMenu()">EINBLICKE</a>
+  </nav>
+</div>
