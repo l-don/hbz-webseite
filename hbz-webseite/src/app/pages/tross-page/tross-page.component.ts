@@ -4,17 +4,19 @@ import {SlideshowComponent} from "../../slideshow/slideshow.component";
 import {NgIf} from "@angular/common";
 import {DualSlideshowComponent} from "../../dual-slideshow/dual-slideshow.component";
 import { HttpClientModule } from '@angular/common/http';
+import {GalleryLightboxComponent} from "../../gallery-lightbox/gallery-lightbox.component";
 
 @Component({
   selector: 'app-tross-page',
   standalone: true,
-  imports: [
-    BannerImgComponent,
-    SlideshowComponent,
-    NgIf,
-    DualSlideshowComponent,
-    HttpClientModule
-  ],
+    imports: [
+        BannerImgComponent,
+        SlideshowComponent,
+        NgIf,
+        DualSlideshowComponent,
+        HttpClientModule,
+        GalleryLightboxComponent
+    ],
   templateUrl: './tross-page.component.html',
   styleUrl: './tross-page.component.scss'
 })

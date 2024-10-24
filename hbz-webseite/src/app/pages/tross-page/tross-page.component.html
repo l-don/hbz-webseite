@@ -17,31 +17,10 @@
           nachzuempfinden und durch unser Erscheinen in den Städten und Dörfern altes Brauchtum zu veranschaulichen.<br>
         </p>
 
-
-
     <div style="height: 50px"></div>
     <div class="bilder">
       <h1>Bilder</h1>
-      <div class="button-grid">
-        <button class="custom-button-1" (click)="toggleSlideshow(2010)">2010</button>
-        <button class="custom-button-1">2011</button>
-        <button class="custom-button-1">2012</button>
-        <button class="custom-button-1">2013</button>
-        <button class="custom-button-1">2014</button>
-        <button class="custom-button-1">2015</button>
-        <button class="custom-button-1">2016</button>
-        <button class="custom-button-1">2017</button>
-        <button class="custom-button-1">2018</button>
-        <button class="custom-button-1">2019</button>
-        <button class="custom-button-1">2020</button>
-        <button class="custom-button-1">2021</button>
-        <button class="custom-button-1">2022</button>
-        <button class="custom-button-1">2023</button>
-        <button class="custom-button-1">2024</button>
-      </div>
-      <h1 class="selectedYear" *ngIf="selectedYear">{{ selectedYear }}</h1>
-      <app-slideshow *ngIf="slideshowVisible" class="slideshow"
-                     [images]="['assets/Verein/Vorstand.jpg', 'assets/Verein/Vereinsziele.jpg']"></app-slideshow>
+      <app-gallery-lightbox></app-gallery-lightbox>
     </div>
 
     <div style="height: 50px"></div>
