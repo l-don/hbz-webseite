@@ -1,0 +1,26 @@
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.image {
+  margin: 5px;
+}
+
+.image img {
+  max-width: 200px;
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.image img:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .image img {
+    max-width: 100%;
+  }
+}

@@ -9,11 +9,12 @@ import {MatMenu, MatMenuItem, MatMenuTrigger} from "@angular/material/menu";
 import { HeaderComponent } from './header/header.component';
 import {FooterComponent} from "./footer/footer.component";
 import { RecaptchaModule } from 'ng-recaptcha';
+import {LightboxModule} from "ngx-lightbox";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem,HeaderComponent, FooterComponent, RecaptchaModule],
+  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem,HeaderComponent, FooterComponent, RecaptchaModule, LightboxModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

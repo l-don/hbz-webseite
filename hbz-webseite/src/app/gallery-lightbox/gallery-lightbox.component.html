@@ -1,0 +1,5 @@
+<div class="gallery">
+  <div class="image" *ngFor="let album of albums; let i = index">
+    <img [src]="album.thumb" (click)="open(i)" alt="Bild {{i + 1}}">
+  </div>
+</div>
