@@ -1,3 +1,9 @@
+<div class="year-selector">
+  <button *ngFor="let year of years" (click)="onYearChange(year)" [class.active]="year === selectedYear">
+    {{ year }}
+  </button>
+</div>
+
 <div class="gallery">
   <div class="image" *ngFor="let album of albums; let i = index">
     <img [src]="album.thumb" (click)="open(i)" alt="Bild {{i + 1}}">
