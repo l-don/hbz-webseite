@@ -24,26 +24,34 @@
           Mitmachen
         </a>
         <h1>Kontakt</h1>
-        <div class="input-container">
-          <label for="name">Name</label>
-          <input type="text" id="name" name="name" required>
-        </div>
-        <div class="input-container">
-          <label for="email">E-Mail</label>
-          <input type="email" id="email" name="email" required>
-        </div>
-        <div class="input-container">
-          <label for="message">Nachricht</label>
-          <textarea id="message" name="message" rows="4" required></textarea>
-        </div>
+        <!-- Kontaktformular mit FormSubmit -->
+        <form action="https://formsubmit.co/louis.dnth@gmail.com" method="POST">
+          <div class="input-container">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div class="input-container">
+            <label for="email">E-Mail</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="input-container">
+            <label for="message">Nachricht</label>
+            <textarea id="message" name="message" rows="4" required></textarea>
+          </div>
 
-        <!-- Submit Button -->
-        <button class="custom-button-1">Absenden</button>
+          <!-- Hidden field to disable captcha -->
+          <input type="hidden" name="_captcha" value="false">
+
+          <!-- Optional: Redirect after submission -->
+          <input type="hidden" name="_next" value="https://deine-webseite.de/danke.html">
+
+          <!-- Submit Button -->
+          <button type="submit" class="custom-button-1">Absenden</button>
+        </form>
       </div>
       <div class="right-image">
         <img src="assets/Home/Home_rechts.jpg" alt="right-image">
       </div>
-
     </div>
-    </div>
+  </div>
 </div>
