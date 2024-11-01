@@ -14,4 +14,13 @@
       text-align: center;
     }
   }
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+
+    .slideshow-container {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  }
 }
