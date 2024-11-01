@@ -10,11 +10,28 @@ import { HeaderComponent } from './header/header.component';
 import {FooterComponent} from "./footer/footer.component";
 import { RecaptchaModule } from 'ng-recaptcha';
 import {LightboxModule} from "ngx-lightbox";
+import {MatAccordion, MatExpansionModule, MatExpansionPanel, MatExpansionPanelTitle} from "@angular/material/expansion";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MainLayoutComponent, RouterLink, MatSidenavContainer, MatSidenav, MatIcon, AsyncPipe, MatIconButton, NgIf, MatAnchor, MatSidenavModule, MatButtonModule, MatMenuTrigger, MatMenu, MatMenuItem,HeaderComponent, FooterComponent, RecaptchaModule, LightboxModule],
+  imports: [RouterOutlet,
+    MainLayoutComponent,
+    RouterLink,
+    MatSidenavContainer,
+    MatSidenav,
+    MatIcon,
+    AsyncPipe,
+    MatIconButton,
+    NgIf,
+    MatAnchor,
+    MatSidenavModule,
+    MatButtonModule,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuItem,HeaderComponent, FooterComponent, RecaptchaModule, LightboxModule, MatExpansionModule,     MatAccordion,
+    MatExpansionPanel,
+    MatExpansionPanelTitle,],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

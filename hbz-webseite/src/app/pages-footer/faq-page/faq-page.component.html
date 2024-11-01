@@ -1,0 +1,16 @@
+<div class="main">
+  <app-banner-img [imgSrc]="'assets/banner/Bannerfoto_Sponsoren.jpg'"></app-banner-img>
+  <div class="container">
+    <!--h1 class="heading intro-text">FAQ</h1-->
+    <h1>Häufig gestellte Fragen</h1>
+
+    <div *ngFor="let item of faqItems; let i = index" class="faq-item">
+      <div class="faq-question" (click)="toggleAnswer(i)">
+        {{ item.question }}
+      </div>
+      <div *ngIf="activeIndex === i" class="faq-answer">
+        {{ item.answer }}
+      </div>
+    </div>
+  </div>
+</div>

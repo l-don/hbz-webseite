@@ -10,6 +10,9 @@ import {SponsorenPageComponent} from "./pages/sponsoren-page/sponsoren-page.comp
 import {GaestebuchPageComponent} from "./pages/gaestebuch-page/gaestebuch-page.component";
 import {EinblickePageComponent} from "./pages/einblicke-page/einblicke-page.component";
 import {NeusiedlerPageComponent} from "./pages/neusiedler-page/neusiedler-page.component";
+import {ImpressumPageComponent} from "./pages-footer/impressum-page/impressum-page.component";
+import {FaqPageComponent} from "./pages-footer/faq-page/faq-page.component";
+import {DsgvoPageComponent} from "./pages-footer/dsgvo-page/dsgvo-page.component";
 
 export const routes: Routes = [
   { path: 'main', component: MainPageComponent },
@@ -21,6 +24,9 @@ export const routes: Routes = [
   { path: 'gästebuch', component: GaestebuchPageComponent },
   { path: 'einblicke', component: EinblickePageComponent },
   { path: 'neusiedler', component: NeusiedlerPageComponent },
+  { path: 'faq', component: FaqPageComponent },
+  { path: 'dsgvo', component: DsgvoPageComponent },
+  { path: 'impressum', component: ImpressumPageComponent },
   { path: '', redirectTo: '/main', pathMatch: 'full' },
 ];
 

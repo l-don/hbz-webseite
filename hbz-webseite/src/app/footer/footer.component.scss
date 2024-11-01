@@ -52,6 +52,8 @@
   font-size: 16pt;
 }
 
+
+
 .social-icons img {
   width: 30px; /* Setzen Sie die Breite der Social-Media-Icons */
   margin: 5px; /* Fügen Sie Abstand zwischen den Icons hinzu */
@@ -64,6 +66,19 @@
   font-weight: 600;
   text-align: left;
   }
+
+.footer a {
+  color: inherit; /* Übernimmt die Textfarbe des umgebenden Elements */
+  text-decoration: none; /* Entfernt die Unterstreichung */
+  font-size: 10pt; /* Setzt die Schriftgröße, passend zu .footer-text */
+  font-family: "Arial", serif; /* Passt die Schriftart an .footer-text an */
+  font-weight: 600; /* Setzt den Schriftstil */
+}
+
+/* Hover-Effekt für die Links */
+.footer a:hover {
+  color: blue; /* Ändert die Textfarbe beim Hover */
+}
 @media (max-width: 768px) {
   .footer h3{
     font-family: 'Playfair Display', serif;

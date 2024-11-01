@@ -1,0 +1,29 @@
+@import '../../../styles';
+.container {
+  padding: 20px;
+}
+
+.heading {
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.faq-item {
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.faq-question {
+  padding: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #f1f1f1;
+}
+
+.faq-answer {
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background-color: #fafafa;
+}
