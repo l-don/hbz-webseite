@@ -28,3 +28,12 @@
   line-height: 40pt;
   font-family: Arial, serif;
 }
+
+.left-right {
+  display: grid;
+  grid-template-columns: 50% 50%; /* Definiert die Breite der Spalten */
+  justify-items: center; /* Zentriert die Inhalte horizontal */
+  align-items: start; /* Start-Ausrichtung vertikal für alle Inhalte */
+  margin-top: 100px;
+
+}

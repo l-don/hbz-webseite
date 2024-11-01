@@ -1,23 +1,19 @@
 @import '../../../styles';
-.sponsor-list {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+
 
   .sponsor {
     display: flex;
     align-items: center;
     margin: 15px 0;
-
-    .sponsor-logo {
-      width:100%;
-      max-width: 300px;
-      height: auto;
-      margin-right: 15px;
-    }
-
-    .sponsor-name {
-      font-size: 1.2em;
-    }
   }
-}
+
+  .sponsor-name {
+    font-size: 1.2em;
+  }
+  .sponsor-logo {
+    width:100%;
+    max-width: 300px;
+    height: auto;
+    margin-right: 15px;
+  }
+
