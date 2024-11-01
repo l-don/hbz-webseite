@@ -2,5 +2,11 @@
   <app-banner-img [imgSrc]="'assets/banner/Bannerfoto_Sponsoren.jpg'"></app-banner-img>
   <div class="container">
     <h1 class="heading intro-text">Sponsoren</h1>
+    <div class="sponsor-list">
+      <div class="sponsor" *ngFor="let sponsor of sponsors">
+        <img [src]="'assets/sponsorenlogos/' + sponsor.logo" alt="{{sponsor.name}}" class="sponsor-logo">
+        <span class="sponsor-name" style="margin-left: 15px; display: inline-block; min-width: 200px;">{{sponsor.name}}</span>
+      </div>
+    </div>
   </div>
 </div>

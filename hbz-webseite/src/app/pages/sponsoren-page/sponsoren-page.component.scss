@@ -1,18 +1,22 @@
 @import '../../../styles';
-
-.main {
-  background-color: #ffeeda;
+.sponsor-list {
   display: flex;
   flex-direction: column;
-  min-height: 800px;
-  overflow: hidden;
-  padding-bottom: 20px;
-}
+  align-items: center;
 
-.container{
-  padding-left:50px; //evtl für handy anpassen
-  padding-right:50px;
-  max-width: 1000px;
-  margin-right: auto;
-  margin-left: auto;
+  .sponsor {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+
+    .sponsor-logo {
+      width: 100px;
+      height: auto;
+      margin-right: 15px;
+    }
+
+    .sponsor-name {
+      font-size: 1.2em;
+    }
+  }
 }
