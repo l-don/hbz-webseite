@@ -1,13 +1,14 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {CommentsService} from "../services/comments.service";
 import {CommentsFirebaseService} from "../services/comments-firebase.service";
-import {NgForOf} from "@angular/common";
+import {DatePipe, NgForOf} from "@angular/common";
 
 @Component({
   selector: 'app-comments',
   standalone: true,
   imports: [
-    NgForOf
+    NgForOf,
+    DatePipe
   ],
   templateUrl: './comments.component.html',
   styleUrl: './comments.component.scss'

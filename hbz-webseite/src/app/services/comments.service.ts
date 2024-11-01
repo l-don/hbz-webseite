@@ -12,10 +12,15 @@ export class CommentsService {
   constructor(private commentsFirebaseService: CommentsFirebaseService) {}
 
   addComment(author: string, message: string): void {
-    const newComment = { author, message };
+    const newComment = {
+      author,
+      message,
+      date: new Date().toISOString() // Aktuelles Datum hinzufügen
+    };
     this.commentsFirebaseService.addComment(newComment).subscribe((id) => {
       const fullComment: CommentInterface = { ...newComment, id };
       this.commentsSig.update((comments) => [...comments, fullComment]);
     });
   }
+
 }
