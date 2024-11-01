@@ -1,19 +1,21 @@
 @import '../../../styles';
-
 .main {
-  background-color: #ffeeda;
   display: flex;
-  flex-direction: column;
-  min-height: 800px;
-  overflow: hidden;
-  padding-bottom: 20px;
-
+  justify-content: center;
 }
 
-.container{
-  padding-left:50px; //evtl für handy anpassen
-  padding-right:50px;
-  max-width: 1000px;
-  margin-right: auto;
-  margin-left: auto;
+.container {
+  max-width: 800px; /* Maximale Breite der Seite */
+  width: 100%; /* Stellt sicher, dass es auf kleinen Bildschirmen anpasst */
+  padding: 0 20px; /* Optionaler Puffer an den Seiten */
+  text-align: center; /* Zentriert den Text im .container */
+}
+
+table {
+  margin: 0 auto; /* Zentriert die Tabelle */
+  text-align: left; /* Stellt sicher, dass die Textausrichtung innerhalb der Tabelle links bleibt */
+}
+
+table td {
+  padding: 5px 10px; /* Optionales Padding für eine verbesserte Lesbarkeit */
 }
