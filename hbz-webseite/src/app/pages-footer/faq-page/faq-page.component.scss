@@ -11,7 +11,7 @@
 
 .faq-item {
   margin-bottom: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #000000;
   border-radius: 5px;
 }
 
@@ -19,11 +19,11 @@
   padding: 10px;
   font-weight: bold;
   cursor: pointer;
-  background-color: #f1f1f1;
+  background-color: rgba(138, 154, 91, 0.53);
 }
 
 .faq-answer {
   padding: 10px;
-  border-top: 1px solid #ddd;
-  background-color: #fafafa;
+  border-top: 1px solid #000000;
+  background-color: rgba(255, 255, 255, 0);
 }
