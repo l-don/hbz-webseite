@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import {Lightbox, LightboxModule} from 'ngx-lightbox';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {CommonModule, NgForOf} from "@angular/common";
+
 @Component({
   selector: 'app-gallery-lightbox',
   standalone: true,
@@ -14,19 +15,33 @@ import {CommonModule, NgForOf} from "@angular/common";
 })
 export class GalleryLightboxComponent implements OnInit {
   public albums: Array<any> = [];
-  public years: string[] = [];
-  public selectedYear: string = '';
+  public years: string[] = Array.from({ length: 18 }, (_, i) => (2024 - i).toString()); // Initialize with years from 2007 to 2024
+  public selectedYear: string = '2024'; // Default to the latest year
   private imagesByYear: { [year: string]: string[] } = {};
 
   constructor(private _lightbox: Lightbox, private http: HttpClient) { }
 
   ngOnInit(): void {
-    this.http.get<{ [year: string]: string[] }>('assets/image-list.json').subscribe(data => {
-      this.imagesByYear = data;
-      this.years = Object.keys(data).sort((a, b) => Number(b) - Number(a)); // Jahre sortieren
-      this.selectedYear = this.years[0]; // Standardmäßig das neueste Jahr auswählen
-      this.updateGallery();
-    });
+    // Make sure years are always available regardless of HTTP request success
+    this.selectedYear = this.years[0];
+    
+    // Add better error handling for the HTTP request
+    this.http.get<{ [year: string]: string[] }>('./assets/image-list.json')
+      .subscribe({
+        next: (data) => {
+          console.log('Successfully loaded image data:', Object.keys(data));
+          this.imagesByYear = data;
+          this.updateGallery();
+        },
+        error: (error) => {
+          console.error('Error loading image-list.json:', error);
+          // Initialize with empty arrays to prevent errors
+          this.years.forEach(year => {
+            this.imagesByYear[year] = [];
+          });
+          this.updateGallery();
+        }
+      });
   }
 
   updateGallery(): void {

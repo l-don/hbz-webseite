@@ -8,6 +8,6 @@
   <div class="image" *ngFor="let album of albums; let i = index">
     <img [src]="album.thumb" (click)="open(i)" alt="Bild {{i + 1}}">
   </div>
-  <a [href]="'/gallery/HBZ' + selectedYear + '.html'" target="_blank">Zur Bildergalerie</a>
+  <a [href]="'/assets/gallery/HBZ' + selectedYear + '.html'" target="_blank">Zur Bildergalerie</a>
 </div>
 
