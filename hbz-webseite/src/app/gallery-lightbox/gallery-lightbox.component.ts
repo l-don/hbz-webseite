@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import {Lightbox, LightboxModule} from 'ngx-lightbox';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {CommonModule, NgForOf} from "@angular/common";
@@ -14,6 +14,9 @@ import {CommonModule, NgForOf} from "@angular/common";
   styleUrl: './gallery-lightbox.component.scss'
 })
 export class GalleryLightboxComponent implements OnInit {
+  @Input() customAlbums: Array<any> | null = null;
+  @Input() hideYearSelector: boolean = false;
+  
   public albums: Array<any> = [];
   public years: string[] = Array.from({ length: 18 }, (_, i) => (2024 - i).toString()); // Initialize with years from 2007 to 2024
   public selectedYear: string = '2024'; // Default to the latest year
@@ -22,6 +25,12 @@ export class GalleryLightboxComponent implements OnInit {
   constructor(private _lightbox: Lightbox, private http: HttpClient) { }
 
   ngOnInit(): void {
+    // If custom albums are provided, use them instead of fetching from JSON
+    if (this.customAlbums && this.customAlbums.length > 0) {
+      this.albums = this.customAlbums;
+      return;
+    }
+    
     // Make sure years are always available regardless of HTTP request success
     this.selectedYear = this.years[0];
     
@@ -45,6 +54,12 @@ export class GalleryLightboxComponent implements OnInit {
   }
 
   updateGallery(): void {
+    // If custom albums are provided, don't change them
+    if (this.customAlbums && this.customAlbums.length > 0) {
+      this.albums = this.customAlbums;
+      return;
+    }
+    
     const images = this.imagesByYear[this.selectedYear] || [];
     this.albums = images.map(image => ({
       src: image,

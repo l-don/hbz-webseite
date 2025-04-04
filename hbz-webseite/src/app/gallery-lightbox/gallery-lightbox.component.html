@@ -1,4 +1,4 @@
-<div class="year-selector">
+<div class="year-selector" *ngIf="!hideYearSelector && !customAlbums">
   <button class="custom-button-1" *ngFor="let year of years" (click)="onYearChange(year)" [class.active]="year === selectedYear">
     {{ year }}
   </button>
@@ -8,6 +8,6 @@
   <div class="image" *ngFor="let album of albums; let i = index">
     <img [src]="album.thumb" (click)="open(i)" alt="Bild {{i + 1}}">
   </div>
-  <a [href]="'/gallery/index.html'" target="_blank">Zur Bildergalerie</a>
+  <a *ngIf="!customAlbums" [href]="'/gallery/index.html'" target="_blank">Zur Bildergalerie</a>
 </div>
 
