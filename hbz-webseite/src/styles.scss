@@ -12,7 +12,11 @@ html, body {
 /* Medieval fonts */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Metamorphous&family=MedievalSharp&family=UnifrakturMaguntia&display=swap');
 html, body { height: 100%; }
-body { margin: 0; font-family: 'PT Serif', serif; }
+body { 
+  margin: 0; 
+  font-family: 'PT Serif', serif;
+  font-weight: 500; /* Increased from 400 to make text thicker */
+}
 
 $header-height: 80px;
 
@@ -86,7 +90,9 @@ $medieval-black: #2b2924;
 }
 
 .main {
-  @include parchment-texture;
+  background-color: $parchment;
+  background-image: url('assets/medieval-style/seamless-paper-texture.png');
+  background-repeat: repeat;
   display: flex;
   flex-direction: column;
   min-height: 800px;
@@ -183,7 +189,7 @@ h2 {
 p {
   font-size: 15pt;
   font-family: 'PT Serif', serif;
-  font-weight: 400;
+  font-weight: 500; /* Increased from 400 to make text thicker */
   line-height: 1.7;
   text-align: left;
   color: $medieval-black;
@@ -331,5 +337,4 @@ select {
   }
 }
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* Remove the duplicate and conflicting styling */

@@ -5,8 +5,9 @@
   position: fixed;
   height: $header-height;
   background-color: $medieval-red;
-  z-index: 1;
-  @include wood-texture;
+  background-image: url('../../assets/medieval-style/seamless-paper-texture-red.png');
+  background-repeat: repeat;
+  z-index: 9997;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   border-bottom: 3px solid $medieval-gold;
 }
@@ -20,7 +21,7 @@
   align-items: center;
   margin: 0;
   position: fixed;
-  z-index: 1;
+  z-index: 9998;
 
   /* Verhindert, dass der Inhalt umbricht */
   white-space: nowrap;
@@ -91,7 +92,7 @@
   left: 50%;
   transform: translateX(-50%);
   top: 0;
-  z-index: 2;
+  z-index: 9999;
 }
 
 .mobile-logo {

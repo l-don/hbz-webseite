@@ -8,6 +8,7 @@
   <div class="image" *ngFor="let album of albums; let i = index">
     <img [src]="album.thumb" (click)="open(i)" alt="Bild {{i + 1}}">
   </div>
-  <a *ngIf="!customAlbums" [href]="'/gallery/index.html'" target="_blank">Zur Bildergalerie</a>
+  <!-- Changed from regular link to styled button -->
+  <a *ngIf="!customAlbums" class="custom-button-1 gallery-link" [href]="'/gallery/index.html'" target="_blank">Zur Bildergalerie</a>
 </div>
 

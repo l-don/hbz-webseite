@@ -5,27 +5,65 @@
   flex-wrap: wrap;
   justify-content: center;
   margin: 20px 0;
+  position: relative;
 }
 
 .image {
-  margin: 10px;
+  margin: 15px;
   position: relative;
+  cursor: pointer;
+  padding: 3px; /* Added padding to accommodate the border */
+  border: 3px solid $medieval-brown; /* Moved border from img to container */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  overflow: visible; /* Ensure corners can extend outside */
   
+  /* Only top-left corner decoration */
   &::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    z-index: 1;
+    width: 25px;
+    height: 25px;
+    top: -12px; /* Adjust position for thinner border */
+    left: -12px;
+    border-top: 2px solid darken($medieval-gold, 15%); /* Darker and thinner border */
+    border-left: 2px solid darken($medieval-gold, 15%);
+    border-right: none;
+    border-bottom: none;
+    opacity: 0;
+    transform: translate(-10px, -10px); /* Start from further away */
+    transition: all 0.4s ease;
+    pointer-events: none; /* Ensures click events pass through */
+    z-index: 2;
   }
   
-  &:hover::before {
-    border-color: $medieval-gold;
-    transform: scale(1.03);
+  /* Only bottom-right corner decoration */
+  &::after {
+    content: '';
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    bottom: -12px; /* Adjust position for thinner border */
+    right: -12px;
+    border-bottom: 2px solid darken($medieval-gold, 15%); /* Darker and thinner border */
+    border-right: 2px solid darken($medieval-gold, 15%);
+    border-top: none;
+    border-left: none;
+    opacity: 0;
+    transform: translate(10px, 10px); /* Start from further away */
+    transition: all 0.4s ease;
+    pointer-events: none; /* Ensures click events pass through */
+    z-index: 2;
+  }
+  
+  &:hover {
+    border-color: rgba($medieval-gold, 0.7);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    
+    &::before, &::after {
+      opacity: 1;
+      transform: translate(0, 0); /* Move to final position on hover */
+    }
   }
 }
 
@@ -34,12 +72,11 @@
   height: auto;
   cursor: pointer;
   transition: all 0.3s ease;
-  border: 4px solid $medieval-brown;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border: none; /* Removed border from the image */
+  display: block; /* Remove any bottom spacing */
   
   &:hover {
     transform: scale(1.02);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -63,6 +100,13 @@
     box-shadow: 0 0 10px rgba($medieval-gold, 0.5);
     transform: translateY(-2px);
   }
+}
+
+/* Gallery link styling to match Mitmachen button */
+.gallery-link {
+  display: inline-block;
+  margin-top: 25px;
+  text-align: center;
 }
 
 /* Lightbox modal styling */
@@ -103,6 +147,20 @@
     &:hover {
       background-color: $medieval-red;
     }
+  }
+}
+
+/* Ensure proper gallery layout */
+.gallery a {
+  display: block;
+  margin: 10px 0;
+  color: $medieval-red;
+  font-family: 'Cinzel', serif;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    color: $medieval-gold;
   }
 }
 
