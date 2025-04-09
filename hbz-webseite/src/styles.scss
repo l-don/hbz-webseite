@@ -1,4 +1,3 @@
-
 html, body {
   margin: 0;
   padding: 0;
@@ -9,74 +8,202 @@ html, body {
 /* Importing Bootstrap SCSS file. */
 @import 'bootstrap/scss/bootstrap';
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
-//@import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@300..900&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+/* Medieval fonts */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Metamorphous&family=MedievalSharp&family=UnifrakturMaguntia&display=swap');
 html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+body { margin: 0; font-family: 'PT Serif', serif; }
 
 $header-height: 80px;
 
+/* Medieval color palette */
+$parchment: #f2e8c9;
+$medieval-red: #8a2215;
+$medieval-brown: #5a3c1e;
+$medieval-gold: #c6a96d;
+$medieval-green: #5a7248;
+$medieval-black: #2b2924;
+
+/* CSS-based parchment texture */
+@mixin parchment-texture {
+  background-color: $parchment;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2) 2px, transparent 2px),
+    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  background-position: -2px -2px, -2px -2px, -1px -1px, -1px -1px;
+}
+
+/* CSS-based wood texture for header */
+@mixin wood-texture {
+  background-color: $medieval-brown;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.1),
+      rgba(0, 0, 0, 0.1) 2px,
+      transparent 2px,
+      transparent 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.05),
+      rgba(0, 0, 0, 0.05) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+}
+
+/* Decorative border pattern */
+@mixin medieval-border {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border: 2px solid rgba($medieval-gold, 0.4);
+    pointer-events: none;
+  }
+}
+
+/* Medieval ornamental dividers */
+.divider-ornament {
+  text-align: center;
+  font-size: 2rem;
+  color: $medieval-gold;
+  margin: 20px 0;
+  
+  &::before, &::after {
+    content: "✦";
+    margin: 0 10px;
+  }
+}
+
 .main {
-  background-color: #ffeeda;
+  @include parchment-texture;
   display: flex;
   flex-direction: column;
   min-height: 800px;
   overflow: hidden;
   padding-bottom: 20px;
-
+  position: relative;
+  @include medieval-border;
 }
+
 .container{
-  padding-left:50px; //evtl für handy anpassen
+  padding-left:50px;
   padding-right:50px;
   max-width: 1000px;
   margin-right: auto;
   margin-left: auto;
+  position: relative;
 }
 
+/* Medieval styled button */
 .custom-button-1{
   margin-top: 20px;
-  padding:10px 20px;
-  border: none;
+  padding: 10px 20px;
+  border: 2px solid $medieval-brown;
   outline: none;
-  background-color: #8a9a5b;
+  background-color: $medieval-green;
   cursor: pointer;
-
-  font-family: 'Playfair Display', serif;
-  color: white;
-  font-weight: 500;
+  font-family: 'Cinzel', serif;
+  color: $parchment;
+  font-weight: 600;
   text-decoration: none;
+  border-radius: 0;
+  position: relative;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  
   &:hover {
-    background-color:#771c1c ;
+    background-color: $medieval-red;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+  }
+  
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 }
 
+/* Medieval typography */
 h1 {
-  font-family: 'Playfair Display', serif;
+  font-family: 'Cinzel', serif;
   font-size: 40px;
   font-weight: bold;
   line-height: 60px;
+  color: $medieval-red;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  position: relative;
+  padding-bottom: 10px;
+  
+  &:after {
+    content: "";
+    display: block;
+    width: 100px;
+    height: 3px;
+    background-color: $medieval-brown;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
 }
 
 h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 22px;
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
   font-weight: bold;
-  line-height: 60px;
-  text-decoration: underline;
+  line-height: 50px;
+  color: $medieval-brown;
+  text-decoration: none;
+  position: relative;
+  
+  &:after {
+    content: "";
+    display: block;
+    width: 80px;
+    height: 2px;
+    background-color: $medieval-gold;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
 }
 
 p {
-  font-size: 14pt;
-    font-family: "Frank Ruehl CLM", serif;
-    font-weight: 500;
-    text-align: left;
-  }
+  font-size: 15pt;
+  font-family: 'PT Serif', serif;
+  font-weight: 400;
+  line-height: 1.7;
+  text-align: left;
+  color: $medieval-black;
+}
 
 u {
   font-size: 16pt;
-  font-family: "Frank Ruehl CLM", serif;
+  font-family: 'PT Serif', serif;
   font-weight: 500;
   text-align: left;
+}
+
+/* First letter styling (for medieval drop caps) */
+.medieval-first-paragraph:first-letter {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: 3.5em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.1em;
+  color: $medieval-red;
 }
 
 .intro-text{
@@ -86,34 +213,106 @@ u {
 
 table {
   font-size: 14pt;
-  font-family: "Frank Ruehl CLM", serif;
+  font-family: 'PT Serif', serif;
   font-weight: 500;
   text-align: left;
-  margin: 0; /* Entfernt jeglichen Außenabstand, um die Tabelle linksbündig zu machen */
-  border-collapse: collapse; /* Optional: Um Ränder zu vereinfachen */
-
+  margin: 0;
+  border-collapse: collapse;
+  border: 1px solid $medieval-brown;
+  background-color: rgba($parchment, 0.7);
+  
+  th, td {
+    padding: 10px;
+    border: 1px solid rgba($medieval-brown, 0.5);
+  }
+  
+  th {
+    background-color: rgba($medieval-gold, 0.2);
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+  }
 }
 
 .input-container {
-  margin-bottom: 20px; /* Abstand zwischen den Input-Feldern */
+  margin-bottom: 20px;
 }
 
 .input-container label {
-  display: block; /* Stellt sicher, dass das Label unter dem Input-Feld steht */
-  margin-bottom: 5px; /* Abstand zwischen dem Label und dem Input-Feld */
+  display: block;
+  margin-bottom: 5px;
+  font-family: 'Cinzel', serif;
+  color: $medieval-brown;
 }
 
 .input-container input,
 .input-container textarea {
-  width: 100%; /* Nimmt die gesamte Breite des Containers ein */
-  padding: 10px; /* Innenabstand des Input-Feldes */
-  border: 1px solid #ccc; /* Rand des Input-Feldes */
-  border-radius: 5px; /* Abrundung der Ecken des Input-Feldes */
-  box-sizing: border-box; /* Berücksichtigt die Grenzen und das Padding in der Breite */
+  width: 100%;
+  padding: 10px;
+  border: 1px solid $medieval-brown;
+  background-color: rgba(255, 255, 255, 0.5);
+  box-sizing: border-box;
+  font-family: 'PT Serif', serif;
+  color: $medieval-black;
+}
+
+/* Medieval blockquote style */
+blockquote {
+  border-left: 4px solid $medieval-gold;
+  margin: 20px 0;
+  padding-left: 20px;
+  font-style: italic;
+}
+
+/* Decorative scroll styling for sections */
+.medieval-scroll {
+  position: relative;
+  padding: 30px;
+  background-color: $parchment;
+  margin-bottom: 30px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  
+  &::before, &::after {
+    content: "";
+    position: absolute;
+    height: 20px;
+    left: 0;
+    right: 0;
+    background-color: rgba($medieval-brown, 0.1);
+  }
+  
+  &::before {
+    top: 0;
+    border-bottom: 1px solid rgba($medieval-brown, 0.3);
+  }
+  
+  &::after {
+    bottom: 0;
+    border-top: 1px solid rgba($medieval-brown, 0.3);
+  }
+}
+
+/* Medieval-style dropdown decoration */
+select {
+  appearance: none;
+  background-color: rgba($parchment, 0.8);
+  border: 1px solid $medieval-brown;
+  padding: 8px 30px 8px 10px;
+  font-family: 'PT Serif', serif;
+  position: relative;
+  cursor: pointer;
+  
+  &::after {
+    content: "▼";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $medieval-brown;
+    pointer-events: none;
+  }
 }
 
 @media (max-width: 768px) {
-
   .intro-text{
     $dist: 200px;
     text-align: center;

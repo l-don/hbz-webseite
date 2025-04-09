@@ -1,7 +1,5 @@
 @import '../../../styles';
 
-
-
 .main {
   background-color: #ffeeda;
   display: flex;
@@ -9,72 +7,158 @@
   min-height: 800px;
   overflow: hidden;
   padding-bottom: 20px;
-
 }
-
 
 .grid-container {
   display: grid;
-  grid-template-columns: 25% 50% 25%; /* Definiert die Breite der Spalten */
-  justify-items: center; /* Zentriert die Inhalte horizontal */
-  align-items: start; /* Start-Ausrichtung vertikal für alle Inhalte */
+  grid-template-columns: 25% 50% 25%; 
+  justify-items: center;
+  align-items: start;
   max-width: 1000px;
   margin-right: auto;
   margin-left: auto;
+  position: relative;
+  
+  /* Add medieval ornamental corners */
+  &::before, &::after {
+    content: "☙";
+    position: absolute;
+    font-size: 2rem;
+    color: $medieval-brown;
+  }
+  
+  &::before {
+    top: -20px;
+    left: 5%;
+  }
+  
+  &::after {
+    bottom: -20px;
+    right: 5%;
+    transform: rotate(180deg);
+  }
 }
 
 .left-image img, .right-image img {
   width: 100%;
+  border: 3px solid $medieval-gold;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.02);
+  }
 }
 
-.info-text{
-  padding:0 40px;
-  font-family: "Frank Ruehl CLM", serif;
+.info-text {
+  padding: 0 40px;
+  font-family: 'PT Serif', serif;
   font-weight: 500;
   text-align: left;
+  line-height: 1.8;
+  position: relative;
+  
+  /* First letter styling for medieval feel */
+  &:first-of-type::first-letter {
+    font-family: 'UnifrakturMaguntia', cursive;
+    font-size: 3em;
+    float: left;
+    line-height: 0.8;
+    margin: 0.1em 0.1em 0 0;
+    color: $medieval-red;
+  }
 }
-.info-text-intro{
+
+.info-text-intro {
   margin: 0 70px;
-  font-family: "Frank Ruehl CLM", serif;
-  font-size: 12pt;
+  font-family: 'PT Serif', serif;
+  font-size: 14pt;
   font-weight: 600;
+  font-style: italic;
+  color: $medieval-brown;
+  line-height: 1.8;
 }
+
 .center {
-  text-align: center; /* Zentriert den Text innerhalb des Containers */
+  text-align: center;
+  padding: 30px;
+  background-color: rgba($parchment, 0.6);
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  position: relative;
+  
+  /* Decorative medieval divider */
+  &::after {
+    content: "❧";
+    display: block;
+    color: $medieval-gold;
+    font-size: 2rem;
+    margin: 20px auto;
+    text-align: center;
+  }
+  
+  h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    
+    &::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+  }
 }
 
 .right-image {
-  padding-top: 200px; /* Verschiebt das rechte Bild nach unten */
+  padding-top: 200px;
   height: 100%;
   min-height: 400px;
 }
+
 .left-image {
   padding-top: 70px;
   height: 100%;
   min-height: 400px;
 }
 
+/* Medieval form button styling */
+button[type="submit"], .submit-button {
+  background-color: $medieval-green;
+  color: $parchment;
+  border: 2px solid $medieval-brown;
+  padding: 10px 20px;
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: $medieval-red;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+  }
+}
 
-
-
-.submit-button:hover {
-  background-color: #0056b3; /* Hintergrundfarbe des Buttons bei Hover */
+/* Form input medieval styling */
+input, textarea {
+  border: 1px solid $medieval-brown;
+  background-color: rgba($parchment, 0.7);
+  padding: 8px;
+  font-family: 'PT Serif', serif;
+  margin-bottom: 10px;
 }
 
 @media (max-width: 768px) {
   .grid-container {
     grid-template-columns: 0 100% 0;
-
   }
-  .center{
+  .center {
     padding: 20px;
   }
-
-  .hero-img{
-    height:100vh;
+  .hero-img {
+    height: 100vh;
     margin-top: 0;
   }
-
 }
 
 

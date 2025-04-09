@@ -1,29 +1,91 @@
 @import '../../../styles';
+
 .container {
-  padding: 20px;
+  padding: 30px;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
 }
 
 .heading {
-  font-size: 2rem;
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  color: $medieval-red;
+  position: relative;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    width: 120px;
+    height: 3px;
+    background-color: $medieval-gold;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
 
+/* Medieval scroll styling for FAQ items */
 .faq-item {
-  margin-bottom: 10px;
-  border: 1px solid #000000;
-  border-radius: 5px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 0;
+  position: relative;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  background-color: $parchment;
+  overflow: hidden;
+  @extend .medieval-scroll;
 }
 
 .faq-question {
-  padding: 10px;
+  padding: 15px 20px;
+  font-family: 'Cinzel', serif;
   font-weight: bold;
+  font-size: 1.1rem;
   cursor: pointer;
-  background-color: rgba(138, 154, 91, 0.53);
+  background-color: rgba($medieval-brown, 0.2);
+  color: $medieval-brown;
+  border-left: 4px solid $medieval-gold;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  &:hover {
+    background-color: rgba($medieval-brown, 0.3);
+  }
+  
+  /* Add medieval arrow icon */
+  &::after {
+    content: "❧";
+    font-size: 1.2rem;
+    color: $medieval-gold;
+    transition: transform 0.3s ease;
+  }
+  
+  &.active::after {
+    transform: rotate(90deg);
+  }
 }
 
 .faq-answer {
-  padding: 10px;
-  border-top: 1px solid #000000;
-  background-color: rgba(255, 255, 255, 0);
+  padding: 20px;
+  border-top: none;
+  background-color: rgba($parchment, 0.7);
+  font-family: 'PT Serif', serif;
+  line-height: 1.7;
+  color: $medieval-black;
+  border-left: 4px solid rgba($medieval-gold, 0.5);
+  
+  /* First letter styling */
+  p:first-of-type::first-letter {
+    font-family: 'UnifrakturMaguntia', cursive;
+    font-size: 2.5em;
+    float: left;
+    line-height: 0.8;
+    margin: 0.1em 0.1em 0 0;
+    color: $medieval-red;
+  }
 }

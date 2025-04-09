@@ -1,30 +1,113 @@
+@import '../../styles.scss';
+
 .gallery {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  margin: 20px 0;
 }
 
 .image {
-  margin: 5px;
+  margin: 10px;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    z-index: 1;
+  }
+  
+  &:hover::before {
+    border-color: $medieval-gold;
+    transform: scale(1.03);
+  }
 }
 
 .image img {
   max-width: 200px;
   height: auto;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: all 0.3s ease;
+  border: 4px solid $medieval-brown;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
 }
 
-.image img:hover {
-  transform: scale(1.05);
+/* Medieval-style year selection buttons */
+.custom-button-1 {
+  margin: 8px;
+  min-width: 70px;
+  font-family: 'Cinzel', serif;
+  background-color: $medieval-green;
+  color: $parchment;
+  border: 1px solid $medieval-brown;
+  padding: 8px 15px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: $medieval-red;
+  }
+  
+  &.selected {
+    background-color: $medieval-red;
+    box-shadow: 0 0 10px rgba($medieval-gold, 0.5);
+    transform: translateY(-2px);
+  }
+}
+
+/* Lightbox modal styling */
+:host ::ng-deep .lightbox-modal {
+  background-color: rgba($medieval-black, 0.9);
+  
+  .modal-content {
+    border: 3px solid $medieval-gold;
+    background-color: $medieval-brown;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+  
+  .modal-header, .modal-footer {
+    background-color: rgba($medieval-brown, 0.8);
+    border-color: $medieval-gold;
+  }
+  
+  .modal-body {
+    background-color: $parchment;
+    @include parchment-texture;
+    padding: 20px;
+  }
+  
+  .close-button {
+    color: $medieval-gold;
+    font-size: 24px;
+    
+    &:hover {
+      color: $parchment;
+    }
+  }
+  
+  .nav-button {
+    background-color: rgba($medieval-brown, 0.6);
+    color: $parchment;
+    border: 1px solid $medieval-gold;
+    
+    &:hover {
+      background-color: $medieval-red;
+    }
+  }
 }
 
 @media (max-width: 600px) {
   .image img {
     max-width: 100%;
   }
-}
-.custom-button-1 {
-  margin: 8px;
-  min-width: 70px;
 }

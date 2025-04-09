@@ -1,19 +1,129 @@
 @import '../../../styles';
 
+.sponsors-container {
+  padding: 20px;
+  @include medieval-border;
+  position: relative;
+}
 
+.sponsors-title {
+  text-align: center;
+  margin-bottom: 40px;
+  position: relative;
+  
+  &::after {
+    content: "❧";
+    display: block;
+    color: $medieval-gold;
+    font-size: 2rem;
+    margin: 10px auto;
+  }
+}
+
+.sponsor {
+  display: flex;
+  align-items: center;
+  margin: 30px 0;
+  padding: 15px;
+  background-color: rgba($parchment, 0.7);
+  border: 1px solid rgba($medieval-brown, 0.3);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
+  
+  /* Add medieval corner decorations */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: $medieval-gold;
+    border-style: solid;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &::before {
+    top: 5px;
+    left: 5px;
+    border-width: 2px 0 0 2px;
+  }
+  
+  &::after {
+    bottom: 5px;
+    right: 5px;
+    border-width: 0 2px 2px 0;
+  }
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    
+    &::before, &::after {
+      opacity: 1;
+    }
+  }
+}
+
+.sponsor-name {
+  font-family: 'Cinzel', serif;
+  font-size: 1.2em;
+  color: $medieval-brown;
+  
+  a {
+    color: $medieval-red;
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+    transition: all 0.3s ease;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 1px;
+      background-color: $medieval-gold;
+      transition: width 0.3s ease;
+    }
+    
+    &:hover {
+      color: darken($medieval-red, 10%);
+      
+      &::after {
+        width: 100%;
+      }
+    }
+  }
+}
+
+.sponsor-logo {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  margin-right: 25px;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid $medieval-brown;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+  
+  &:hover {
+    filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.3));
+  }
+}
+
+@media (max-width: 768px) {
   .sponsor {
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    margin: 15px 0;
+    text-align: center;
   }
-
-  .sponsor-name {
-    font-size: 1.2em;
-  }
+  
   .sponsor-logo {
-    width:100%;
-    max-width: 300px;
-    height: auto;
-    margin-right: 15px;
+    margin-right: 0;
+    margin-bottom: 15px;
   }
+}
 

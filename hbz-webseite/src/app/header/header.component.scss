@@ -4,8 +4,11 @@
   width: 100%;
   position: fixed;
   height: $header-height;
-  background-color: #771c1c;
+  background-color: $medieval-red;
   z-index: 1;
+  @include wood-texture;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-bottom: 3px solid $medieval-gold;
 }
 
 .header-bar {
@@ -48,16 +51,39 @@
   background-color: transparent;
   cursor: pointer;
   text-decoration: none;
-  color: white;
+  color: $parchment;
   border: none;
   outline: none;
-  font-family: "Frank Ruehl CLM", serif;
-  font-size: 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
   white-space: nowrap; /* Verhindert Umbruch der einzelnen Links */
-}
-
-.header-bar nav a:hover {
-  text-decoration: underline;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background-color: $medieval-gold;
+    transition: width 0.3s ease;
+  }
+  
+  &:hover {
+    text-decoration: none;
+    color: $medieval-gold;
+    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+    
+    &::after {
+      width: 80%;
+    }
+  }
 }
 
 .logo-container {
@@ -68,13 +94,19 @@
   z-index: 2;
 }
 
-.mobile-logo{
+.mobile-logo {
   visibility: hidden;
 }
 
 .wappen {
-  width: 80px;
+  width: 90px;
   margin-top: 10px;
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.5));
+  transition: transform 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
 }
 
 .hamburger-menu {
@@ -86,13 +118,14 @@
 }
 
 .hamburger-icon {
-  color: white;
+  color: $parchment;
   transform: scale(3);
   margin: 30px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .close-icon {
-  color: white;
+  color: $parchment;
   transform: scale(3);
 }
 
@@ -102,7 +135,9 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0,0,0, 0.9);
+  background-color: rgba($medieval-black, 0.95);
+  @include parchment-texture;
+  background-blend-mode: multiply;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -117,13 +152,36 @@
 }
 
 .menu-navigation a {
-  color: #fff;
+  color: $parchment;
   padding: 20px;
   text-decoration: none;
   font-size: 34px;
   display: block;
-  font-family: "Frank Ruehl CLM", serif;
+  font-family: 'Cinzel', serif;
   line-height: 40px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+  position: relative;
+  
+  &:hover {
+    color: $medieval-gold;
+    transform: translateX(10px);
+  }
+  
+  &::after {
+    content: "✦";
+    position: absolute;
+    left: -20px;
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+  
+  &:hover::after {
+    opacity: 1;
+    left: 0;
+  }
 }
 
 .close-menu {

@@ -1,13 +1,63 @@
 @import '../../styles.scss';
+
+.hero-img-container {
+  position: relative;
+  margin-top: $header-height;
+  overflow: hidden;
+  
+  /* Medieval decorative border */
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      $medieval-gold,
+      $medieval-gold 15px,
+      transparent 15px,
+      transparent 30px
+    );
+    z-index: 5;
+  }
+  
+  &::before {
+    top: 0;
+  }
+  
+  &::after {
+    bottom: 0;
+  }
+}
+
 .hero-img {
   width: 100%;
   object-fit: cover;
   height: 400px;
-  margin-top: $header-height;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  filter: sepia(0.2) contrast(1.1);
+  transition: transform 0.8s ease;
+  
+  /* Apply vignette effect for medieval aesthetic */
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+  }
 }
+
 @media (max-width: 768px) {
-  .hero-img{
-    height:100vh;
+  .hero-img-container {
     margin-top: 0;
+  }
+  
+  .hero-img {
+    height: 100vh;
   }
 }

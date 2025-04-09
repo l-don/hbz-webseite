@@ -1,9 +1,9 @@
 <div class="main">
   <app-banner-img [imgSrc]="'assets/banner/Bannerfoto_Sponsoren.jpg'"></app-banner-img>
   <div class="container">
-    <h1>Sponsoren</h1>
     <h1 class="heading intro-text">Sponsoren</h1>
-
+    <div class="sponsors-container">
+      <h1 class="sponsors-title">Unsere Unterstützer</h1>
 
       <div class="sponsor" *ngFor="let sponsor of sponsors">
         <img
@@ -12,22 +12,25 @@
           class="sponsor-logo"
         >
         <div class="sponsor-details">
-    <span
-      class="sponsor-name"
-      style="margin-top: 10px; display: block; min-width: 200px;"
-    >
-      {{ sponsor.name }}
-    </span>
+          <span class="sponsor-name">{{ sponsor.name }}</span>
           <a [href]="sponsor.link" target="_blank" rel="noopener noreferrer" class="sponsor-link">
             {{ sponsor.link }}
           </a>
         </div>
       </div>
-      <h2>Förderer</h2>
-      <img [src]="'assets/sponsorenlogos/SPKMSN_rot.jpg'" alt="Sparkasse" class="sponsor-logo">
-      <span class="sponsor-name" style="margin-left: 15px; display: inline-block; min-width: 200px;">Sparkasse Mittelsachsen <br>
-        <a href="https://www.sparkasse-mittelsachsen.de/">https://www.sparkasse-mittelsachsen.de/</a>
-      </span>
-
+      
+      <div class="divider-ornament"></div>
+      
+      <h2 class="sponsors-title">Förderer</h2>
+      <div class="sponsor">
+        <img [src]="'assets/sponsorenlogos/SPKMSN_rot.jpg'" alt="Sparkasse" class="sponsor-logo">
+        <div class="sponsor-details">
+          <span class="sponsor-name">Sparkasse Mittelsachsen</span>
+          <a href="https://www.sparkasse-mittelsachsen.de/" class="sponsor-link">
+            https://www.sparkasse-mittelsachsen.de/
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>

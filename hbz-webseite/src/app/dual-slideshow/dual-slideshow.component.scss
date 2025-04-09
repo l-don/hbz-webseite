@@ -1,26 +1,81 @@
+@import '../../styles.scss';
+
 .dual-slideshow {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 30px;
+  margin-bottom: 40px;
+  position: relative;
+  
+  /* Medieval ornamental symbol as a divider */
+  &::after {
+    content: "✦";
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: $medieval-gold;
+    font-size: 24px;
+  }
 
   .slideshow-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 45%;
+    padding: 15px;
+    background-color: rgba($parchment, 0.5);
+    border: 1px solid rgba($medieval-brown, 0.3);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    position: relative;
+    
+    /* Medieval corner decorations */
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: $medieval-gold;
+      border-style: solid;
+    }
+    
+    &::before {
+      top: 5px;
+      left: 5px;
+      border-width: 2px 0 0 2px;
+    }
+    
+    &::after {
+      bottom: 5px;
+      right: 5px;
+      border-width: 0 2px 2px 0;
+    }
 
     .text-below {
-      margin-top: 10px;
+      margin-top: 15px;
       text-align: center;
+      font-family: 'Cinzel', serif;
+      color: $medieval-brown;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 5px 10px;
+      border-bottom: 1px solid $medieval-gold;
     }
   }
+  
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
 
     .slideshow-container {
       width: 100%;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
+    }
+    
+    /* Adjust divider position for mobile */
+    &::after {
+      bottom: -15px;
     }
   }
 }
