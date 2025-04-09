@@ -12,8 +12,8 @@ html, body {
 /* Medieval fonts */
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Metamorphous&family=MedievalSharp&family=UnifrakturMaguntia&display=swap');
 html, body { height: 100%; }
-body { 
-  margin: 0; 
+body {
+  margin: 0;
   font-family: 'PT Serif', serif;
   font-weight: 500; /* Increased from 400 to make text thicker */
 }
@@ -31,7 +31,7 @@ $medieval-black: #2b2924;
 /* CSS-based parchment texture */
 @mixin parchment-texture {
   background-color: $parchment;
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.2) 2px, transparent 2px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.2) 2px, transparent 2px),
     linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
@@ -43,7 +43,7 @@ $medieval-black: #2b2924;
 /* CSS-based wood texture for header */
 @mixin wood-texture {
   background-color: $medieval-brown;
-  background-image: 
+  background-image:
     repeating-linear-gradient(
       0deg,
       rgba(0, 0, 0, 0.1),
@@ -63,7 +63,7 @@ $medieval-black: #2b2924;
 /* Decorative border pattern */
 @mixin medieval-border {
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -82,7 +82,7 @@ $medieval-black: #2b2924;
   font-size: 2rem;
   color: $medieval-gold;
   margin: 20px 0;
-  
+
   &::before, &::after {
     content: "✦";
     margin: 0 10px;
@@ -91,7 +91,7 @@ $medieval-black: #2b2924;
 
 .main {
   background-color: $parchment;
-  background-image: url('assets/medieval-style/seamless-paper-texture.png');
+  background-image: url('assets/medieval-style/seamless-paper-texture2.png');
   background-repeat: repeat;
   display: flex;
   flex-direction: column;
@@ -129,13 +129,13 @@ $medieval-black: #2b2924;
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  
+
   &:hover {
     background-color: $medieval-red;
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(0,0,0,0.2);
   }
-  
+
   &:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -152,17 +152,8 @@ h1 {
   text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
   position: relative;
   padding-bottom: 10px;
-  
-  &:after {
-    content: "";
-    display: block;
-    width: 100px;
-    height: 3px;
-    background-color: $medieval-brown;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-  }
+
+  /* Removed the :after pseudo-element that created the line */
 }
 
 h2 {
@@ -173,17 +164,8 @@ h2 {
   color: $medieval-brown;
   text-decoration: none;
   position: relative;
-  
-  &:after {
-    content: "";
-    display: block;
-    width: 80px;
-    height: 2px;
-    background-color: $medieval-gold;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-  }
+
+  /* Removed the :after pseudo-element that created the line */
 }
 
 p {
@@ -193,7 +175,7 @@ p {
   line-height: 1.7;
   text-align: left;
   color: $medieval-black;
-}
+  }
 
 u {
   font-size: 16pt;
@@ -226,12 +208,12 @@ table {
   border-collapse: collapse;
   border: 1px solid $medieval-brown;
   background-color: rgba($parchment, 0.7);
-  
+
   th, td {
     padding: 10px;
     border: 1px solid rgba($medieval-brown, 0.5);
   }
-  
+
   th {
     background-color: rgba($medieval-gold, 0.2);
     font-family: 'Cinzel', serif;
@@ -276,7 +258,7 @@ blockquote {
   background-color: $parchment;
   margin-bottom: 30px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  
+
   &::before, &::after {
     content: "";
     position: absolute;
@@ -285,12 +267,12 @@ blockquote {
     right: 0;
     background-color: rgba($medieval-brown, 0.1);
   }
-  
+
   &::before {
     top: 0;
     border-bottom: 1px solid rgba($medieval-brown, 0.3);
   }
-  
+
   &::after {
     bottom: 0;
     border-top: 1px solid rgba($medieval-brown, 0.3);
@@ -306,7 +288,7 @@ select {
   font-family: 'PT Serif', serif;
   position: relative;
   cursor: pointer;
-  
+
   &::after {
     content: "▼";
     position: absolute;

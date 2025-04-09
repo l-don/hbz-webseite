@@ -2,7 +2,7 @@
 
 .footer {
   width: 100%;
-  background-color: #5a3c1e; /* Medieval brown color explicitly defined */
+  background-color: #5a3c1e; /* Medieval brown color as fallback */
   color: #f2e8c9; /* Parchment color explicitly defined */
   padding: 30px 20px; 
   display: flex;
@@ -15,19 +15,10 @@
   border-top: 3px solid #c6a96d; /* Medieval gold color */
   box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
   
-  /* Wood texture as fallback with CSS only */
-  background-image: linear-gradient(
-    45deg,
-    rgba(0, 0, 0, 0.1) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(0, 0, 0, 0.1) 50%,
-    rgba(0, 0, 0, 0.1) 75%,
-    transparent 75%,
-    transparent
-  );
-  background-size: 60px 60px;
-  background-blend-mode: overlay;
+  /* Replacing wood texture with the new green texture image */
+  background-image: url('../../assets/medieval-style/seamless-paper-texture_green.png');
+  background-repeat: repeat;
+  background-size: auto;
   
   /* Decorative top border */
   &::before {
@@ -121,14 +112,14 @@
 
 .social-icons {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start; /* Changed from center to flex-start to align with heading */
   margin-top: 15px;
 }
 
 .social-icons img {
   width: 32px;
   height: 32px;
-  margin: 0 10px;
+  margin: 0 10px 0 0; /* Changed margin to have 0 on right side and create left alignment */
   cursor: pointer;
   filter: brightness(1.2);
   transition: all 0.3s ease;

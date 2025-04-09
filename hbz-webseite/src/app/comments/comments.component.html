@@ -1,7 +1,6 @@
-<div *ngFor="let comment of commentsService.commentsSig()">
+<div *ngFor="let comment of commentsService.commentsSig()" class="comment-card">
   <h3>{{ comment.author }}</h3>
   <p>{{ comment.message }}</p>
-  <p><em>{{ comment.date | date: 'medium' }}</em></p>
-  <hr />
+  <p><em>{{ comment.date | date: 'dd.MM.yyyy' }}</em></p>
 </div>
 

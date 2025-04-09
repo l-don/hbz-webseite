@@ -1,0 +1,25 @@
+@import '../../styles.scss';
+
+.comment-card {
+  background-color: rgba($parchment, 0.8); // Hellerer Hintergrund basierend auf der Pergament-Farbe
+  border-radius: 10px; // Abgerundete Ecken
+  padding: 20px; // Innenabstand
+  margin-bottom: 20px; // Abstand zwischen den Karten
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); // Leichter Schatten für mehr Tiefe
+  border: 1px solid rgba($medieval-gold, 0.3); // Subtile Umrandung in Gold
+
+  h3 {
+    margin-top: 0; // Entfernt den oberen Abstand beim Namen
+    color: $medieval-brown; // Passende Farbe für den Namen
+  }
+
+  p {
+    margin-bottom: 10px; // Abstand zwischen den Absätzen
+  }
+
+  p:last-child {
+    margin-bottom: 0; // Kein Abstand am unteren Rand
+    font-size: 0.9em; // Kleinere Schrift für das Datum
+    color: rgba($medieval-black, 0.7); // Leicht abgeschwächte Farbe für das Datum
+  }
+}
