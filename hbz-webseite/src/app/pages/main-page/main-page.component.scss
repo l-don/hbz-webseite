@@ -11,14 +11,14 @@
 
 .grid-container {
   display: grid;
-  grid-template-columns: 25% 50% 25%; 
+  grid-template-columns: 20% 60% 20%; /* Changed from 25% 50% 25% to allocate more width to the center */
   justify-items: center;
   align-items: start;
   max-width: 1000px;
   margin-right: auto;
   margin-left: auto;
   position: relative;
-  
+
   /* Add medieval ornamental corners */
   &::before, &::after {
     content: "☙";
@@ -26,12 +26,12 @@
     font-size: 2rem;
     color: $medieval-brown;
   }
-  
+
   &::before {
     top: -20px;
     left: 5%;
   }
-  
+
   &::after {
     bottom: -20px;
     right: 5%;
@@ -44,7 +44,7 @@
   border: 3px solid $medieval-gold;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   transition: transform 0.3s ease;
-  
+
   &:hover {
     transform: scale(1.02);
   }
@@ -57,7 +57,7 @@
   text-align: left;
   line-height: 1.8;
   position: relative;
-  
+
   /* First letter styling for medieval feel */
   &:first-of-type::first-letter {
     font-family: 'UnifrakturMaguntia', cursive;
@@ -86,7 +86,7 @@
   border-radius: 5px;
   box-shadow: 0 0 20px rgba(0,0,0,0.05);
   position: relative;
-  
+
   /* Decorative medieval divider */
   &::after {
     content: "❧";
@@ -96,11 +96,11 @@
     margin: 20px auto;
     text-align: center;
   }
-  
+
   h1 {
     text-align: center;
     margin-bottom: 25px;
-    
+
     &::after {
       left: 50%;
       transform: translateX(-50%);
@@ -131,7 +131,7 @@ button[type="submit"], .submit-button {
   letter-spacing: 1px;
   transition: all 0.3s ease;
   cursor: pointer;
-  
+
   &:hover {
     background-color: $medieval-red;
     transform: translateY(-2px);

@@ -17,7 +17,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   overflow: visible; /* Ensure corners can extend outside */
-  
+
   /* Only top-left corner decoration */
   &::before {
     content: '';
@@ -36,7 +36,7 @@
     pointer-events: none; /* Ensures click events pass through */
     z-index: 2;
   }
-  
+
   /* Only bottom-right corner decoration */
   &::after {
     content: '';
@@ -55,11 +55,11 @@
     pointer-events: none; /* Ensures click events pass through */
     z-index: 2;
   }
-  
+
   &:hover {
     border-color: rgba($medieval-gold, 0.7);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    
+
     &::before, &::after {
       opacity: 1;
       transform: translate(0, 0); /* Move to final position on hover */
@@ -74,7 +74,7 @@
   transition: all 0.3s ease;
   border: none; /* Removed border from the image */
   display: block; /* Remove any bottom spacing */
-  
+
   &:hover {
     transform: scale(1.02);
   }
@@ -90,11 +90,11 @@
   border: 1px solid $medieval-brown;
   padding: 8px 15px;
   transition: all 0.3s ease;
-  
+
   &:hover {
     background-color: $medieval-red;
   }
-  
+
   &.selected {
     background-color: $medieval-red;
     box-shadow: 0 0 10px rgba($medieval-gold, 0.5);
@@ -102,48 +102,49 @@
   }
 }
 
-/* Gallery link styling to match Mitmachen button */
+
 .gallery-link {
   display: inline-block;
   margin-top: 25px;
   text-align: center;
+  color: $parchment; /* Updated to match the main page buttons */
 }
 
 /* Lightbox modal styling */
 :host ::ng-deep .lightbox-modal {
   background-color: rgba($medieval-black, 0.9);
-  
+
   .modal-content {
     border: 3px solid $medieval-gold;
     background-color: $medieval-brown;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   }
-  
+
   .modal-header, .modal-footer {
     background-color: rgba($medieval-brown, 0.8);
     border-color: $medieval-gold;
   }
-  
+
   .modal-body {
     background-color: $parchment;
     @include parchment-texture;
     padding: 20px;
   }
-  
+
   .close-button {
     color: $medieval-gold;
     font-size: 24px;
-    
+
     &:hover {
       color: $parchment;
     }
   }
-  
+
   .nav-button {
     background-color: rgba($medieval-brown, 0.6);
     color: $parchment;
     border: 1px solid $medieval-gold;
-    
+
     &:hover {
       background-color: $medieval-red;
     }
@@ -154,13 +155,20 @@
 .gallery a {
   display: block;
   margin: 10px 0;
-  color: $medieval-red;
   font-family: 'Cinzel', serif;
   text-decoration: none;
   transition: all 0.3s ease;
-  
+
   &:hover {
     color: $medieval-gold;
+  }
+
+  /* Special styling for the gallery link button to match other buttons */
+  &.custom-button-1 {
+    color: $parchment;
+    display: inline-block;
+    margin-top: 25px;
+    text-align: center;
   }
 }
 

@@ -4,7 +4,7 @@
   position: relative;
   margin-top: $header-height;
   overflow: hidden;
-  
+
   /* Medieval decorative border */
   &::before, &::after {
     content: '';
@@ -21,11 +21,11 @@
     );
     z-index: 5;
   }
-  
+
   &::before {
     top: 0;
   }
-  
+
   &::after {
     bottom: 0;
   }
@@ -38,7 +38,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   filter: sepia(0.2) contrast(1.1);
   transition: transform 0.8s ease;
-  
+
   /* Apply vignette effect for medieval aesthetic */
   &::after {
     content: "";
@@ -52,11 +52,24 @@
   }
 }
 
+.medieval-pattern-band {
+  width: 100%;
+  height: 70px; /* Significantly increased height for a much larger pattern */
+  background-image: url('../../assets/medieval-style/bannerband_seamless4-2.png');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  position: relative;
+  z-index: 6;
+  margin-top: 25px; /* Space above */
+  margin-bottom: 20px; /* Space below */
+  /* Shadow removed */
+}
+
 @media (max-width: 768px) {
   .hero-img-container {
     margin-top: 0;
   }
-  
+
   .hero-img {
     height: 100vh;
   }
