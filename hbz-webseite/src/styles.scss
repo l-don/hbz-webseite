@@ -184,6 +184,10 @@ u {
   text-align: left;
 }
 
+hr {
+  border-bottom: 3px solid #bb8c4a;
+}
+
 /* First letter styling (for medieval drop caps) */
 .medieval-first-paragraph:first-letter {
   font-family: 'UnifrakturMaguntia', cursive;

@@ -25,3 +25,13 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+
+
+## Veränderungen Hochladen
+
+Um die webseite nach veränderungen wieder hochzuladen sollte volgendes getan werden:
+- cd hbz-webseite\hbz-webseite"
+- ng build --configuration production 
+- auf dem server löschen: alte .js, .css dateien löschen, BEHALTE: .htaccess, sitemap.xml.php, robots.txt.php
+- in dist/browser ordner gehen (Filezilla), alles auswählen und hochladen (auf server root) (Einstellungen sollten so sein, dass alle existierenden dateien automatisch überschrieben werden)
+- webseite testen
