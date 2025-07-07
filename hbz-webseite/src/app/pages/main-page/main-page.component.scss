@@ -148,6 +148,12 @@ input, textarea {
   margin-bottom: 10px;
 }
 
+.streckenplan {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
 @media (max-width: 768px) {
   .grid-container {
     grid-template-columns: 0 100% 0;
