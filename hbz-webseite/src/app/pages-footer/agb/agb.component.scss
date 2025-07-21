@@ -1,0 +1,153 @@
+@import '../../../styles';
+
+.agb-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 50px;
+  font-family: 'PT Serif', serif;
+  color: $medieval-black;
+  line-height: 1.7;
+  min-height: 100vh;
+
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 40px;
+    color: $medieval-red;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 100px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+  }
+
+  .subtitle {
+    font-family: 'Cinzel', serif;
+    font-size: 18pt;
+    color: $medieval-brown;
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 40px;
+  }
+
+  .agb-section {
+    margin-bottom: 30px;
+    padding: 25px;
+    background-color: rgba($parchment, 0.4);
+    border-left: 4px solid $medieval-gold;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border: 1px solid rgba($medieval-gold, 0.3);
+      pointer-events: none;
+    }
+
+    h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 20pt;
+      color: $medieval-brown;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    p {
+      font-size: 15pt;
+      font-family: 'PT Serif', serif;
+      font-weight: 500;
+      line-height: 1.7;
+      text-align: justify;
+      color: $medieval-black;
+      margin-bottom: 15px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul, ol {
+      font-size: 15pt;
+      font-family: 'PT Serif', serif;
+      font-weight: 500;
+      line-height: 1.7;
+      color: $medieval-black;
+      margin-left: 20px;
+
+      li {
+        margin-bottom: 8px;
+      }
+    }
+
+    strong {
+      color: $medieval-red;
+      font-weight: bold;
+    }
+  }
+}
+
+// Medieval-style first letter for the first section
+.agb-container .agb-section:first-of-type p:first-of-type:first-letter {
+  font-family: 'UnifrakturMaguntia', cursive;
+  font-size: 3.5em;
+  float: left;
+  line-height: 0.8;
+  margin-right: 0.1em;
+  color: $medieval-red;
+}
+
+@media (max-width: 768px) {
+  .agb-container {
+    padding: 20px 15px;
+
+    h1 {
+      font-size: 28pt;
+    }
+
+    .subtitle {
+      font-size: 16pt;
+    }
+
+    .agb-section {
+      padding: 20px;
+
+      h2 {
+        font-size: 18pt;
+      }
+
+      p, ul, ol {
+        font-size: 14pt;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .agb-container {
+    padding: 15px 10px;
+
+    h1 {
+      font-size: 24pt;
+    }
+
+    .subtitle {
+      font-size: 14pt;
+    }
+
+    .agb-section {
+      padding: 15px;
+
+      h2 {
+        font-size: 16pt;
+      }
+
+      p, ul, ol {
+        font-size: 13pt;
+      }
+    }
+  }
+}
