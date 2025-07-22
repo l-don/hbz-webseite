@@ -35,3 +35,12 @@ Um die webseite nach veränderungen wieder hochzuladen sollte volgendes getan we
 - auf dem server löschen: alte .js, .css dateien löschen, BEHALTE: .htaccess, sitemap.xml.php, robots.txt.php
 - in dist/browser ordner gehen (Filezilla), alles auswählen und hochladen (auf server root) (Einstellungen sollten so sein, dass alle existierenden dateien automatisch überschrieben werden)
 - webseite testen
+
+## Hinzufügen von bildern zur tross seite:
+ - Bilder in den Ordner "src/assets/gallery-lightbox/[Jahr]" legen
+   - In der Datei "src/app/tross/tross.component.ts" die Folgenden zeilen anpassen, sodass das Jahr auf das letzt jahr gesetzt ist und die lenght stimmt:
+     - ```typescript
+       public years: string[] = Array.from({ length: 19 }, (_, i) => (2025 - i).toString()); // Initialize with years from 2007 to 2025
+       public selectedYear: string = '2025';
+       ```
+   - node generate-image-list.js ausführen
