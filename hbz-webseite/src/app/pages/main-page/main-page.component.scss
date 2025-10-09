@@ -78,6 +78,31 @@
   color: $medieval-brown;
   line-height: 1.8;
 }
+.next-besiedlungszug {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.85);
+  border-left: 4px solid #8b5e3c;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0 2rem;
+  color: #2c1d13;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.next-besiedlungszug .label {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.08em;
+}
+
+.next-besiedlungszug .date {
+  display: block;
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+}
 
 .center {
   text-align: center;
