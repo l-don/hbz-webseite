@@ -69,7 +69,8 @@ export class RegistrationFormComponent implements OnInit {
       event_id: new FormControl(this.events[0]?.id || '', { nonNullable: true, validators: [Validators.required] }),
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
-      emergency_contact: ['', [Validators.required]],
+      emergency_contact_name: ['', [Validators.required]],
+      emergency_contact_phone: ['', [Validators.required]],
       comment: [''], // optional per request
       people: this.fb.array([]),
       items: this.fb.array([])
@@ -183,7 +184,8 @@ export class RegistrationFormComponent implements OnInit {
         event_id: eventId,
         email: this.form.get('email')!.value,
         phone: this.form.get('phone')!.value,
-        emergency_contact: this.form.get('emergency_contact')!.value,
+        emergency_contact_name: this.form.get('emergency_contact_name')!.value,
+        emergency_contact_phone: this.form.get('emergency_contact_phone')!.value,
         comment: this.form.get('comment')!.value || ''
       },
       people: this.people.controls.map((ctrl) => {
@@ -219,7 +221,8 @@ export class RegistrationFormComponent implements OnInit {
         event_id: eventId,
         email: '',
         phone: '',
-        emergency_contact: '',
+        emergency_contact_name: '',
+        emergency_contact_phone: '',
         comment: ''
       });
       this.people.clear();

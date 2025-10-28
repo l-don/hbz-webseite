@@ -33,9 +33,15 @@
               </label>
             </div>
             <div>
-              <div class="error-text" *ngIf="submitted && form.get('emergency_contact')?.hasError('required')">Pflichtfeld</div>
-              <label>Notfallkontakt
-                <input type="text" placeholder="Name und Nummer" formControlName="emergency_contact" />
+              <div class="error-text" *ngIf="submitted && form.get('emergency_contact_name')?.hasError('required')">Pflichtfeld</div>
+              <label>Notfallkontakt Name
+                <input type="text" placeholder="Name" formControlName="emergency_contact_name" />
+              </label>
+            </div>
+            <div>
+              <div class="error-text" *ngIf="submitted && form.get('emergency_contact_phone')?.hasError('required')">Pflichtfeld</div>
+              <label>Notfallkontakt Nummer
+                <input type="tel" placeholder="+49 ..." formControlName="emergency_contact_phone" />
               </label>
             </div>
             <label>Kommentar zur Buchung
@@ -67,7 +73,7 @@
                 </div>
                 <div>
                   <div class="error-text" *ngIf="submitted && i === 0 && p.get('birthday')?.hasError('required')">Pflichtfeld</div>
-                  <label>Geburtstag
+                  <label>Geburtsdatum
                     <input type="date" formControlName="birthday" />
                   </label>
                 </div>
@@ -111,7 +117,10 @@
         </div>
 
         <div class="form-error-banner" *ngIf="submitted && !canSubmit">
-          <strong>Hinweis:</strong> Bitte füllen Sie alle mit „Pflichtfeld“ markierten Felder aus.
+          <strong>Hinweis: <br>
+            Bitte füllen Sie alle mit „Pflichtfeld“ markierten Felder aus.</strong><br>
+           Zu jeder Buchung muss eine Email und Telefeonnummer zum Kontakt hinzugefügt werden. Außedem muss ein Notfallkontakt mit Name und Telefonnummer angegeben werden.<br>
+          Für eine gültige Buchung muss außerdem mindestens eine Person mit Vorname, Nachname, Geburtsdatum und Adresse hinzugefügt werden.
         </div>
 
         <div class="actions">
