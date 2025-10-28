@@ -31,8 +31,8 @@ To get more help on the Angular CLI use `ng help` or go check out the [Angular C
 
 Um die webseite nach veränderungen wieder hochzuladen sollte volgendes getan werden:
 - cd hbz-webseite\hbz-webseite"
-- ng build --configuration production 
-- auf dem server löschen: alte .js, .css dateien löschen, BEHALTE: .htaccess, sitemap.xml.php, robots.txt.php
+- ng build --configuration production (aktuell bleibt prerender manchmal hängen, dann: ng build --configuration production --no-prerender)
+- auf dem server löschen: alte .js, .css, index.html, BEHALTE: .htaccess, sitemap.xml.php, robots.txt.php
 - in dist/browser ordner gehen (Filezilla), alles auswählen und hochladen (auf server root) (Einstellungen sollten so sein, dass alle existierenden dateien automatisch überschrieben werden)
 - webseite testen
 
