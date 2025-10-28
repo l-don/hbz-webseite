@@ -1,0 +1,144 @@
+@import '../../../styles';
+
+.reg-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 0 60px;
+  font-family: 'PT Serif', serif;
+  color: $medieval-black;
+}
+
+.reg-section {
+  margin-bottom: 30px;
+  padding: 25px;
+  background-color: rgba($parchment, 0.4);
+  border-left: 4px solid $medieval-gold;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 10px; left: 10px; right: 10px; bottom: 10px;
+    border: 1px solid rgba($medieval-gold, 0.3);
+    pointer-events: none;
+  }
+
+  h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 22pt;
+    color: $medieval-brown;
+    margin: 0 0 15px 0;
+    font-weight: bold;
+  }
+
+  label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    color: $medieval-brown;
+  }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid $medieval-brown;
+    background-color: rgba(255,255,255,0.6);
+    box-sizing: border-box;
+    font-family: 'PT Serif', serif;
+    color: $medieval-black;
+  }
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.person-card {
+  border: 1px solid rgba($medieval-brown, 0.4);
+  padding: 12px;
+  border-radius: 6px;
+  background-color: rgba($parchment, 0.35);
+  @include medieval-border;
+  margin-bottom: 12px;
+}
+
+.person-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.flags {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.item-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.btn-secondary {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid $medieval-brown;
+  background: rgba($parchment, 0.6);
+  color: $medieval-brown;
+  text-decoration: none;
+  font-family: 'Cinzel', serif;
+  transition: all .2s ease;
+
+  &:hover { background: rgba($parchment, 0.8); }
+}
+
+.btn-ghost {
+  padding: 6px 10px;
+  border: 1px solid rgba($medieval-brown, 0.6);
+  background: transparent;
+  color: $medieval-brown;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  transition: all .2s ease;
+
+  &:hover {
+    background: $medieval-red;
+    color: $parchment;
+    border-color: $medieval-red;
+  }
+}
+
+.error-text {
+  color: #b00000;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  margin: 2px 0 6px;
+}
+
+.form-error-banner {
+  background: rgba(#f5cbcb, 0.4);
+  border: 1px solid rgba($medieval-red, 0.6);
+  border-left: 4px solid $medieval-red;
+  color: $medieval-red;
+  padding: 12px 14px;
+  margin: 10px 0 12px;
+  font-family: 'Cinzel', serif;
+}
+
+@media (max-width: 768px) {
+  .reg-section { padding: 18px; }
+  .item-row { grid-template-columns: 1fr; }
+}
