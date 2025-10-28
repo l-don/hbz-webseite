@@ -1,0 +1,134 @@
+<div class="main">
+  <div class="container admin-container">
+    <h1 class="heading intro-text">Anmeldung</h1>
+    <h1>Admin-Bereich</h1>
+
+    <div class="topbar">
+      <div>Rolle: <strong>{{ role || 'keine' }}</strong></div>
+      <div class="actions">
+        <a routerLink="/anmeldung" class="btn-secondary">Zurück</a>
+        <button class="custom-button-1" (click)="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="reg-section" *ngIf="(events$ | async) as events">
+      <h2>Veranstaltung wählen</h2>
+      <label>Aktive Veranstaltung
+        <select [formControl]="selectedEventId">
+          <option *ngFor="let e of events" [value]="e.id">{{ e.title }}</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="reg-section" *ngIf="role === 'admin'">
+      <h2>Veranstaltungen verwalten</h2>
+      <form [formGroup]="eventForm" (ngSubmit)="addEvent()" class="grid">
+        <label>Titel
+          <input type="text" formControlName="title" placeholder="Titel" />
+        </label>
+        <label>Beginn
+          <input type="datetime-local" formControlName="begin" />
+        </label>
+        <label>Ende
+          <input type="datetime-local" formControlName="end" />
+        </label>
+        <label>Deadline
+          <input type="date" formControlName="deadline" />
+        </label>
+        <label>Beschreibung
+          <input type="text" formControlName="description" />
+        </label>
+        <div class="right">
+          <button type="submit" class="custom-button-1">+ Veranstaltung anlegen</button>
+        </div>
+      </form>
+
+      <div class="events-list" *ngIf="(events$ | async) as evs">
+        <ul>
+          <li *ngFor="let e of evs">
+            <span>{{ e.title }}</span>
+            <button class="btn-ghost" (click)="removeEvent(e.id!)">Löschen</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <ng-container *ngIf="(vm$ | async) as vm">
+      <div class="reg-section stats">
+        <h2>Übersicht</h2>
+        <div class="stats-grid">
+          <div><strong>Teilnehmer gesamt:</strong> {{ vm.stats.total }}</div>
+          <div><strong>Erwachsene:</strong> {{ vm.stats.adult }}/{{ vm.stats.total }}</div>
+          <div><strong>Kind 10-14:</strong> {{ vm.stats.c10_14 }}/{{ vm.stats.total }}</div>
+          <div><strong>Kind 6-9:</strong> {{ vm.stats.c6_9 }}/{{ vm.stats.total }}</div>
+          <div><strong>Kind 3-5:</strong> {{ vm.stats.c3_5 }}/{{ vm.stats.total }}</div>
+          <div><strong>Kind unter 3:</strong> {{ vm.stats.c_under3 }}/{{ vm.stats.total }}</div>
+          <div><strong>Hunde:</strong> {{ vm.stats.dogs }}</div>
+          <div><strong>Pferde:</strong> {{ vm.stats.horses }}</div>
+        </div>
+      </div>
+
+      <div class="reg-section">
+        <h2>Registrierungen</h2>
+        <div class="accordion">
+          <details *ngFor="let r of vm.list">
+            <summary>
+              <div class="reg-row">
+                <div>
+                  <strong>{{ r.email }}</strong>
+                  <div class="meta">Tel: {{ r.phone }} · Event: {{ r.event_id }}</div>
+                </div>
+                <div class="row-actions">
+                  <button class="btn-ghost danger" *ngIf="role==='admin'" (click)="deleteRegistration(r.id)">Entfernen</button>
+                </div>
+              </div>
+            </summary>
+
+            <div class="inner">
+              <div class="block">
+                <h3>Kommentar</h3>
+                <p>{{ r.comment || '—' }}</p>
+              </div>
+
+              <div class="block">
+                <h3>Personen ({{ r.people.length }})</h3>
+                <table class="list-table" *ngIf="r.people.length; else noPeople">
+                  <thead>
+                    <tr><th>Vorname</th><th>Nachname</th><th>Geburtstag</th><th>Adresse</th><th>Kommentar</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let p of r.people">
+                      <td>{{ p.firstname }}</td>
+                      <td>{{ p.lastname }}</td>
+                      <td>{{ p.birthday || '—' }}</td>
+                      <td>{{ p.address || '—' }}</td>
+                      <td>{{ p.comment || '—' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <ng-template #noPeople><p>Keine Personen erfasst.</p></ng-template>
+              </div>
+
+              <div class="block">
+                <h3>Zusatzoptionen ({{ r.items.length }})</h3>
+                <table class="list-table" *ngIf="r.items.length; else noItems">
+                  <thead><tr><th>Typ</th><th>Kommentar</th></tr></thead>
+                  <tbody>
+                    <tr *ngFor="let i of r.items">
+                      <td>{{ i.type_id }}</td>
+                      <td>{{ i.comment || '—' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <ng-template #noItems><p>Keine Zusatzoptionen.</p></ng-template>
+              </div>
+
+            </div>
+          </details>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
+

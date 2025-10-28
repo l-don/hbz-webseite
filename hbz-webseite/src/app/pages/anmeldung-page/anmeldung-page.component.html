@@ -2,17 +2,30 @@
   <app-banner-img [imgSrc]="'assets/banner/Bannerfoto_Anmeldung.jpg'"></app-banner-img>
   <div class="container">
     <h1 class="heading intro-text">Anmeldung</h1>
-    <h1>Anmeldung</h1>
+    <h1>Anmel<a routerLink="/admin-login" class="hidden-admin-link">d</a>ung</h1>
     <p>Liebe Siedler und alle die es werden wollen ;-)<br>
       Interessierte können sich für den kommenden Besiedlungszug 2026, am 04.07.26 - 12.07.26 hier anmelden. Die Anmeldung wird voraussichtlich ab November verfügbar sein.<br>
     </p>
     <br>
+    <!-- Link to registration page, currently commented out until registration is open
       <a class="custom-button-1" routerLink="/anmeldung/registrierung">
         Zur Registrierung
+        -->
+    <a class="custom-button-1" href="http://historischer-besiedlungszug.de/anmeldetool/" target="_blank" class="custom-button-1">
+      Anmelden
       </a>
     <br>
     <br>
     <br>
+    <!-- list events, currently commented out until registration is open
+    <div *ngIf="(events$ | async) as events" class="events-list">
+      <h2>Verfügbare Veranstaltungen</h2>
+      <ul>
+        <li *ngFor="let e of events">{{ e.title }}</li>
+      </ul>
+    </div>
+    -->
+
     <h1>Preise</h1>
     <table>
       <tr>

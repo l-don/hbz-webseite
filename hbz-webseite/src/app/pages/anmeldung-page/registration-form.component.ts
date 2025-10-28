@@ -4,6 +4,8 @@ import { ReactiveFormsModule, FormArray, FormBuilder, FormControl, FormGroup, Va
 import { RouterModule } from '@angular/router';
 import { RegistrationFirebaseService } from '../../services/registration-firebase.service';
 import { BannerImgComponent } from '../../banner-img/banner-img.component';
+import { EventsService, EventModel } from '../../services/events.service';
+import { Observable } from 'rxjs';
 
 // Simple UUID util (uses browser crypto when available)
 function uuid(): string {
@@ -19,21 +21,6 @@ function uuid(): string {
   });
 }
 
-interface EventModel {
-  id: string;
-  title: string;
-  deadline?: string;
-  begin?: string;
-  end?: string;
-  description?: string;
-}
-
-interface ItemType {
-  id: string; // slug or UUID
-  title: string;
-  price: number;
-}
-
 @Component({
   selector: 'app-registration-form',
   standalone: true,
@@ -42,36 +29,29 @@ interface ItemType {
   styleUrl: './registration-form.component.scss'
 })
 export class RegistrationFormComponent implements OnInit {
-  // Catalog data (phase 1: hardcoded; can later be loaded from Firestore)
-  readonly events: EventModel[] = [
-    {
-      id: 'hbz-2026',
-      title: 'Historischer Besiedlungszug 2026',
-      deadline: '2026-05-15',
-      begin: '2026-07-04T08:00:00Z',
-      end: '2026-07-12T18:00:00Z',
-      description: 'Anmeldung für den Besiedlungszug 2026'
-    }
-  ];
+  // Load events from Firestore
+  events$: Observable<EventModel[]>;
 
-  readonly itemTypes: ItemType[] = [
-    { id: 'dog', title: 'Hund', price: 50 },
-    { id: 'tshirt', title: 'T-Shirt', price: 20 },
-    { id: 'wagon', title: 'Wagenplatz', price: 100 }
+  // Only dog and horse add-ons with 0€ per requirement
+  readonly itemTypes = [
+    { id: 'dog', title: 'Hund', price: 0 },
+    { id: 'horse', title: 'Pferd', price: 0 }
   ];
 
   form: FormGroup;
   submitted = false;
   isSaving = false;
+  hasEvents = false;
 
-  constructor(private fb: FormBuilder, private regService: RegistrationFirebaseService) {
+  constructor(private fb: FormBuilder, private regService: RegistrationFirebaseService, private eventsService: EventsService) {
+    this.events$ = this.eventsService.list$();
     this.form = this.fb.group({
-      event_id: new FormControl(this.events[0]?.id || '', { nonNullable: true, validators: [Validators.required] }),
+      event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
       emergency_contact_name: ['', [Validators.required]],
       emergency_contact_phone: ['', [Validators.required]],
-      comment: [''], // optional per request
+      comment: [''],
       people: this.fb.array([]),
       items: this.fb.array([])
     });
@@ -81,6 +61,14 @@ export class RegistrationFormComponent implements OnInit {
     if (this.people.length === 0) {
       this.addPerson();
     }
+    // Preselect first event if available and set hasEvents flag
+    this.events$.subscribe((evs) => {
+      this.hasEvents = !!(evs && evs.length > 0);
+      const current = this.form.get('event_id')!.value as string;
+      if (!current && this.hasEvents) {
+        this.form.get('event_id')!.setValue(evs[0].id);
+      }
+    });
   }
 
   // Helpers to access arrays
@@ -162,7 +150,8 @@ export class RegistrationFormComponent implements OnInit {
   }
 
   get canSubmit(): boolean {
-    return this.form.valid && this.people.length > 0;
+    const eventId = this.form.get('event_id')!.value as string;
+    return this.hasEvents && !!eventId && this.form.valid && this.people.length > 0;
   }
 
   async submit(): Promise<void> {

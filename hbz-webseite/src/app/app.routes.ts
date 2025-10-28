@@ -15,6 +15,8 @@ import {FaqPageComponent} from "./pages-footer/faq-page/faq-page.component";
 import {DsgvoPageComponent} from "./pages-footer/dsgvo-page/dsgvo-page.component";
 import { AgbComponent } from './pages-footer/agb/agb.component';
 import { RegistrationFormComponent } from './pages/anmeldung-page/registration-form.component';
+import { AdminLoginComponent } from './pages/admin-login/admin-login.component';
+import { AdminPageComponent } from './pages/admin-page/admin-page.component';
 
 export const routes: Routes = [
   { path: 'main', component: MainPageComponent },
@@ -22,6 +24,8 @@ export const routes: Routes = [
   { path: 'tross', component: TrossPageComponent },
   { path: 'anmeldung', component: AnmeldungPageComponent },
   { path: 'anmeldung/registrierung', component: RegistrationFormComponent },
+  { path: 'admin-login', component: AdminLoginComponent },
+  { path: 'admin', component: AdminPageComponent },
   { path: 'neuigkeiten', component: NeuigkeitenPageComponent },
   { path: 'sponsoren', component: SponsorenPageComponent },
   { path: 'gästebuch', component: GaestebuchPageComponent },

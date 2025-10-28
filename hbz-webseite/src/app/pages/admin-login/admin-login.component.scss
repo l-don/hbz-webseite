@@ -1,0 +1,49 @@
+@import '../../../styles';
+
+.login-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 30px 0 60px;
+}
+
+.login-form {
+  @include medieval-border;
+  background: rgba($parchment, 0.5);
+  padding: 24px;
+  border-left: 4px solid $medieval-gold;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+
+  .field {
+    margin-bottom: 16px;
+
+    label {
+      display: block;
+      font-family: 'Cinzel', serif;
+      color: $medieval-brown;
+      margin-bottom: 4px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid $medieval-brown;
+      background: rgba(255,255,255,0.7);
+      font-family: 'PT Serif', serif;
+      color: $medieval-black;
+      box-sizing: border-box;
+    }
+  }
+
+  .error {
+    color: $medieval-red;
+    font-family: 'Cinzel', serif;
+    margin: 8px 0 12px;
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+}
+

@@ -1,0 +1,23 @@
+<div class="main">
+  <div class="container login-container">
+    <h1 class="heading intro-text">Anmeldung</h1>
+    <h1>Admin Bereich</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+      <div class="field">
+        <label>Benutzer</label>
+        <input type="text" formControlName="username" />
+      </div>
+      <div class="field">
+        <label>Passwort</label>
+        <input type="password" formControlName="password" />
+      </div>
+      <div class="error" *ngIf="error">{{ error }}</div>
+      <div class="actions">
+        <a routerLink="/anmeldung" class="btn-secondary">Zurück</a>
+        <button type="submit" class="custom-button-1">Login</button>
+      </div>
+    </form>
+  </div>
+</div>
+

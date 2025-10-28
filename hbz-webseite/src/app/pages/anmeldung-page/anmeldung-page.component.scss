@@ -19,3 +19,63 @@ table {
 table td {
   padding: 5px 10px; /* Optionales Padding für eine verbesserte Lesbarkeit */
 }
+
+.hidden-admin-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.events-list {
+  margin: 10px auto 30px;
+  max-width: 800px;
+  text-align: center; // center section text
+  padding: 0; // remove extra padding
+  background: transparent; // remove background
+  border: none; // remove decorative border
+  box-shadow: none; // remove shadow
+  position: relative;
+
+  // remove inner decorative border
+  &::before { display: none; }
+
+  h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 26pt;
+    color: $medieval-brown;
+    margin: 0 0 10px 0;
+    text-align: center; // ensure centered
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto; // center the list block
+    display: inline-flex; // make list size to content and center
+    flex-direction: column;
+    align-items: center; // center items horizontally
+    gap: 4px;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: center; // center item content
+    gap: 10px;
+    padding: 6px 0;
+    border: 0; // remove separators
+    font-family: 'Cinzel', serif;
+    font-size: 18pt;
+    color: $medieval-black;
+
+    &::before {
+      content: '✦';
+      color: $medieval-gold;
+      font-size: 0.9em;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .events-list h2 { font-size: 20pt; }
+  .events-list li { font-size: 16pt; }
+}
