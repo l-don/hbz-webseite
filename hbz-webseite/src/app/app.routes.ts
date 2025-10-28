@@ -14,12 +14,14 @@ import {ImpressumPageComponent} from "./pages-footer/impressum-page/impressum-pa
 import {FaqPageComponent} from "./pages-footer/faq-page/faq-page.component";
 import {DsgvoPageComponent} from "./pages-footer/dsgvo-page/dsgvo-page.component";
 import { AgbComponent } from './pages-footer/agb/agb.component';
+import { RegistrationFormComponent } from './pages/anmeldung-page/registration-form.component';
 
 export const routes: Routes = [
   { path: 'main', component: MainPageComponent },
   { path: 'verein', component: VereinPageComponent },
   { path: 'tross', component: TrossPageComponent },
   { path: 'anmeldung', component: AnmeldungPageComponent },
+  { path: 'anmeldung/registrierung', component: RegistrationFormComponent },
   { path: 'neuigkeiten', component: NeuigkeitenPageComponent },
   { path: 'sponsoren', component: SponsorenPageComponent },
   { path: 'gästebuch', component: GaestebuchPageComponent },

@@ -1,0 +1,114 @@
+<div class="main container">
+  <h1 class="heading intro-text">Registrierung</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <!-- Event selection / display -->
+    <div *ngIf="events.length > 1; else singleEvent">
+      <label for="event">Veranstaltung</label>
+      <select id="event" formControlName="event_id">
+        <option *ngFor="let e of events" [value]="e.id">{{ e.title }}</option>
+      </select>
+    </div>
+    <ng-template #singleEvent>
+      <p><strong>Veranstaltung:</strong> {{ events[0]?.title }}</p>
+    </ng-template>
+
+    <hr>
+
+    <!-- Booking data -->
+    <h2>Buchungsdaten</h2>
+    <div class="grid">
+      <label>Email
+        <input type="email" placeholder="name@example.com" formControlName="email" />
+      </label>
+      <label>Telefon
+        <input type="tel" placeholder="+49 ..." formControlName="phone" />
+      </label>
+      <label>Notfallkontakt
+        <input type="text" placeholder="Name und Nummer" formControlName="emergency_contact" />
+      </label>
+      <label>Kommentar zur Buchung
+        <textarea rows="3" placeholder="Anmerkungen" formControlName="comment"></textarea>
+      </label>
+    </div>
+
+    <hr>
+
+    <!-- People -->
+    <h2>Teilnehmende</h2>
+    <div formArrayName="people">
+      <div *ngFor="let p of people.controls; let i = index" [formGroupName]="i" class="person-card">
+        <div class="person-header">
+          <strong>Person {{ i + 1 }}</strong>
+          <button type="button" (click)="removePerson(i)" *ngIf="people.length > 1">Entfernen</button>
+        </div>
+        <div class="grid">
+          <label>Vorname
+            <input type="text" formControlName="firstname" />
+          </label>
+          <label>Nachname
+            <input type="text" formControlName="lastname" />
+          </label>
+          <label>Geburtstag
+            <input type="date" formControlName="birthday" />
+          </label>
+          <label>Adresse
+            <input type="text" formControlName="address" />
+          </label>
+          <label>Kommentar
+            <input type="text" formControlName="comment" />
+          </label>
+        </div>
+        <div class="flags">
+          <label><input type="checkbox" formControlName="vegetarian" /> Vegetarisch</label>
+          <label><input type="checkbox" formControlName="staff" /> Mitarbeiter</label>
+          <label><input type="checkbox" formControlName="orga" /> Orga</label>
+        </div>
+      </div>
+      <button type="button" (click)="addPerson()">+ Person hinzufügen</button>
+    </div>
+
+    <hr>
+
+    <!-- Items / Add-ons -->
+    <h2>Zusatzoptionen</h2>
+    <div formArrayName="items">
+      <div *ngFor="let it of items.controls; let j = index" [formGroupName]="j" class="item-row">
+        <label>Typ
+          <select formControlName="type_id">
+            <option value="" disabled>Bitte wählen</option>
+            <option *ngFor="let t of itemTypes" [value]="t.id">{{ t.title }} ({{ t.price }}€)</option>
+          </select>
+        </label>
+        <label>Kommentar
+          <input type="text" formControlName="comment" />
+        </label>
+        <button type="button" (click)="removeItem(j)">Entfernen</button>
+      </div>
+      <button type="button" (click)="addItem()">+ Zusatz hinzufügen</button>
+    </div>
+
+    <hr>
+
+    <div class="actions">
+      <a routerLink="/anmeldung" class="btn-secondary">Zurück</a>
+      <button type="submit" [disabled]="!canSubmit">Absenden</button>
+    </div>
+
+  </form>
+</div>
+
+<style>
+  .container { max-width: 960px; margin: 0 auto; }
+  form label { display: block; margin: 8px 0; }
+  input, select, textarea { width: 100%; padding: 6px; box-sizing: border-box; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .person-card { border: 1px solid #ddd; padding: 12px; border-radius: 6px; margin-bottom: 12px; }
+  .person-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .flags { display: flex; gap: 16px; margin-top: 8px; }
+  .item-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 8px; }
+  .actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; }
+  .btn-secondary { display: inline-block; padding: 8px 12px; border: 1px solid #aaa; border-radius: 4px; text-decoration: none; color: inherit; }
+  button[disabled] { opacity: 0.6; cursor: not-allowed; }
+</style>
+
