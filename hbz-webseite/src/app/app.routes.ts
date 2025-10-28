@@ -13,6 +13,7 @@ import {NeusiedlerPageComponent} from "./pages/neusiedler-page/neusiedler-page.c
 import {ImpressumPageComponent} from "./pages-footer/impressum-page/impressum-page.component";
 import {FaqPageComponent} from "./pages-footer/faq-page/faq-page.component";
 import {DsgvoPageComponent} from "./pages-footer/dsgvo-page/dsgvo-page.component";
+import { AgbComponent } from './pages-footer/agb/agb.component';
 
 export const routes: Routes = [
   { path: 'main', component: MainPageComponent },
@@ -27,6 +28,7 @@ export const routes: Routes = [
   { path: 'faq', component: FaqPageComponent },
   { path: 'dsgvo', component: DsgvoPageComponent },
   { path: 'impressum', component: ImpressumPageComponent },
+  { path: 'agb', component: AgbComponent },
   { path: '', redirectTo: '/main', pathMatch: 'full' },
 ];
 

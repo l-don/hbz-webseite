@@ -18,8 +18,8 @@ export class GalleryLightboxComponent implements OnInit {
   @Input() hideYearSelector: boolean = false;
   
   public albums: Array<any> = [];
-  public years: string[] = Array.from({ length: 18 }, (_, i) => (2024 - i).toString()); // Initialize with years from 2007 to 2024
-  public selectedYear: string = '2024'; // Default to the latest year
+  public years: string[] = Array.from({ length: 19 }, (_, i) => (2025 - i).toString()); // Initialize with years from 2007 to 2025
+  public selectedYear: string = '2025'; // Default to the latest year
   private imagesByYear: { [year: string]: string[] } = {};
 
   constructor(private _lightbox: Lightbox, private http: HttpClient) { }

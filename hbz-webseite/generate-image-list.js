@@ -23,7 +23,7 @@ fs.readdir(galleryPath, (err, yearDirs) => {
     const images = files.filter(file => {
       const ext = path.extname(file).toLowerCase();
       return ['.jpg', '.jpeg', '.png', '.gif'].includes(ext);
-    }).map(file => `assets/gallery/${yearDir}/${file}`);
+    }).map(file => `assets/gallery-lightbox/${yearDir}/${file}`);
 
     years[yearDir] = images;
   });
