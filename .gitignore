@@ -1,3 +1,17 @@
 ﻿.idea
 hbz-webseite/package-lock.json
 package-lock.json
+hbz-webseite/backend/node_modules
+
+# Node dependencies (Frontend & Backend)
+node_modules/
+backend/node_modules/
+
+# Env-Dateien
+.env
+backend/.env
+
+# Build-Output
+dist/
+backend/dist/
+functions/.cache/
