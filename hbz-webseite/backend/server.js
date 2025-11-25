@@ -1,20 +1,17 @@
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
-const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 
 const app = express();
 
-// CORS: Angular-Frontend darf auf das Backend zugreifen
-// Passe den Origin ggf. an den Port deines Frontends an (4200 für Angular CLI, 5173 für Vite, etc.)
+// CORS: ggf. Origin an deinen Frontend-Port anpassen (4200, 5173, ...)
 app.use(cors({
-  origin: 'http://localhost:4200', // falls dein Dev-Server z.B. auf 5173 läuft, hier anpassen
+  origin: 'http://localhost:4200',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
 }));
 
-// JSON-Body parsen
 app.use(express.json());
 
 const pool = mysql.createPool({
@@ -25,7 +22,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'hbz-registrations',
 });
 
-// Health-Check
+// Health-Check gegen DB
 app.get('/health', async (req, res) => {
   console.log('[GET] /health called');
   try {
@@ -40,18 +37,24 @@ app.get('/health', async (req, res) => {
 
 /**
  * POST /registrations
+ *
  * Body:
  * {
- *   "eventId": "...",
- *   "registration": { name, address, email, phone, emergency, comment? },
- *   "persons": [ { name, birthday, address, comment?, flag_vegetarian, flag_organization }, ... ],
- *   "items": [ { articleId, comment? }, ... ]
+ *   "registration": {...},
+ *   "persons": [...],
+ *   "items": [...]
  * }
+ *
+ * Die eventId wird hier testweise fest auf
+ * 02cd532f-5d57-4895-a724-940a4c3f51ae gesetzt.
  */
 app.post('/registrations', async (req, res) => {
   console.log('[POST] /registrations body:', JSON.stringify(req.body, null, 2));
 
-  const { eventId, registration, persons = [], items = [] } = req.body;
+  const { registration, persons = [], items = [] } = req.body;
+
+  // Feste Event-UUID aus hbz_events (BIN_TO_UUID(id))
+  const eventId = '02cd532f-5d57-4895-a724-940a4c3f51ae';
 
   if (!eventId || !registration) {
     console.warn('Missing eventId or registration data');
@@ -62,11 +65,7 @@ app.post('/registrations', async (req, res) => {
   await connection.beginTransaction();
 
   try {
-    const registrationId = uuidv4();
-    console.log('Generated registrationId:', registrationId);
-
-// Namen aus dem Frontend in Vor- und Nachname aufteilen (nur für Anzeige),
-    // in der DB gibt es nur ein Feld "name".
+    // Namen ggf. für Anzeige trennen – in der DB gibt es nur "name"
     let firstname = registration.name;
     let lastname = '';
 
@@ -77,46 +76,49 @@ app.post('/registrations', async (req, res) => {
         firstname = parts.join(' ');
       }
     }
-
     const fullName = (firstname + ' ' + lastname).trim() || registration.name || 'Unbekannt';
 
-        console.log('Generated registrationId (text UUID):', registrationId);
+    // 1) Registrierung einfügen
+    //    id wird von DB via DEFAULT (UUID_TO_BIN(uuid())) erzeugt
+    //    Trigger setzt @RegistrationId (binary(16)) für diese Session
+    const regSql = `
+      INSERT INTO hbz_registrations
+        (event, name, address, email, phone, emergency, comment)
+      VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)
+    `;
+    const regParams = [
+      eventId,                      // Text-UUID, wird durch UUID_TO_BIN konvertiert
+      fullName,
+      registration.address,
+      registration.email,
+      registration.phone,
+      registration.emergency,
+      registration.comment || null,
+    ];
 
-        const regSql = `
-          INSERT INTO Registration
-            (id, event, name, address, email, phone, emergency, comment)
-          VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)
-        `;
-        const regParams = [
-          registrationId,
-          eventId,
-          fullName,
-          registration.address,
-          registration.email,
-          registration.phone,
-          registration.emergency,
-          registration.comment || null,
-        ];
+    console.log('Executing hbz_registrations INSERT:', regSql, regParams);
+    await connection.execute(regSql, regParams);
 
-        console.log('Executing Registration INSERT:', regSql, regParams);
-        await connection.execute(regSql, regParams);
+    // 2) Registrierungs-ID aus Trigger lesen (als Text-UUID)
+    const [regIdRows] = await connection.query(
+      'SELECT BIN_TO_UUID(@RegistrationId) AS registrationId'
+    );
+    const registrationIdText = regIdRows?.[0]?.registrationId || null;
+    console.log('RegistrationId from trigger (text UUID):', registrationIdText);
 
-    // Personen einfügen
+    // 3) Personen einfügen
     for (const person of persons) {
-      const personId = uuidv4();
-      console.log('Generated personId:', personId, 'for person', person.name);
+      console.log('Inserting person for', person.name);
 
-      const flagVeg = person.flag_vegetarian ? 1 : 0; // BIT(1) oder TINYINT
-      const flagOrg = person.flag_organization ?? 0;  // BIT(2) oder TINYINT
+      const flagVeg = person.flag_vegetarian ? 1 : 0; // BIT(1)
+      const flagOrg = person.flag_organization ?? 0;  // BIT(2)
 
       const personSql = `
-        INSERT INTO Person
-          (id, registration, name, birthday, address, comment, flag_vegetarian, flag_organization)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO hbz_persons
+          (registration, name, birthday, address, comment, flag_vegetarian, flag_organization)
+        VALUES (@RegistrationId, ?, ?, ?, ?, ?, ?)
       `;
       const personParams = [
-        personId,
-        registrationId,
         person.name,
         person.birthday, // 'YYYY-MM-DD'
         person.address,
@@ -124,36 +126,33 @@ app.post('/registrations', async (req, res) => {
         flagVeg,
         flagOrg,
       ];
-      console.log('Executing Person INSERT:', personSql, personParams);
+      console.log('Executing hbz_persons INSERT:', personSql, personParams);
       await connection.execute(personSql, personParams);
     }
 
-    // Items einfügen
+    // 4) Items einfügen
     for (const item of items) {
-      const itemId = uuidv4();
-      console.log('Generated itemId:', itemId, 'for article', item.articleId);
+      console.log('Inserting item for article', item.articleId);
 
       const itemSql = `
-        INSERT INTO Item
-          (id, registration, article, comment)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO hbz_items
+          (registration, article, comment)
+        VALUES (@RegistrationId, UUID_TO_BIN(?), ?)
       `;
       const itemParams = [
-        itemId,
-        registrationId,
-        item.articleId,
+        item.articleId,             // Text-UUID aus hbz_articles
         item.comment || null,
       ];
-      console.log('Executing Item INSERT:', itemSql, itemParams);
+      console.log('Executing hbz_items INSERT:', itemSql, itemParams);
       await connection.execute(itemSql, itemParams);
     }
 
     await connection.commit();
-    console.log('Transaction committed for registrationId:', registrationId);
+    console.log('Transaction committed, registrationId:', registrationIdText);
 
     return res.status(201).json({
       success: true,
-      registrationId,
+      registrationId: registrationIdText,
       personsInserted: persons.length,
       itemsInserted: items.length,
     });
