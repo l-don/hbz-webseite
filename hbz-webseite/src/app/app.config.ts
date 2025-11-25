@@ -6,6 +6,9 @@ import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { routes } from './app.routes';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
+// NEU:
+import { provideHttpClient, withFetch } from '@angular/common/http';
+
 const firebaseConfig = {
   apiKey: "AIzaSyAeEAXG9V3WhnFfjb9JFjCkFLxCT6nXjgI",
   authDomain: "hbz-database.firebaseapp.com",
@@ -19,6 +22,8 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
-    provideFirestore(() => getFirestore()), provideAnimationsAsync(),
+    provideFirestore(() => getFirestore()),
+    provideAnimationsAsync(),
+    provideHttpClient(withFetch()),   // <--- wichtig
   ],
 };

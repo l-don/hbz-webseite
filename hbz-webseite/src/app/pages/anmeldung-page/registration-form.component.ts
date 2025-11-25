@@ -1,11 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormArray,
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators
+} from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { RegistrationFirebaseService } from '../../services/registration-firebase.service';
 import { BannerImgComponent } from '../../banner-img/banner-img.component';
 import { EventsService, EventModel } from '../../services/events.service';
 import { Observable } from 'rxjs';
+import {
+  RegistrationApiService,
+  RegistrationApiPayload
+} from '../../services/registration-api.service';
 
 // Simple UUID util (uses browser crypto when available)
 function uuid(): string {
@@ -29,21 +40,41 @@ function uuid(): string {
   styleUrl: './registration-form.component.scss'
 })
 export class RegistrationFormComponent implements OnInit {
-  // Load events from Firestore
+  // Load events from Firestore (später evtl. auf MySQL-API umstellen)
   events$: Observable<EventModel[]>;
 
-  // Only dog and horse add-ons with 0€ per requirement
+  // Nur Hund und Pferd mit 0€
   readonly itemTypes = [
     { id: 'dog', title: 'Hund', price: 0 },
     { id: 'horse', title: 'Pferd', price: 0 }
   ];
+
+  /**
+   * Mapping von Formular-Item-Typen ('dog', 'horse')
+   * auf die entsprechenden Article.id-Werte in deiner MySQL-Datenbank.
+   * DIESE IDs MUSST DU AN DEINE DB ANPASSEN!
+   *
+   * Beispiel:
+   * SELECT id, description FROM Article;
+   * Hund  -> AAAA... (hier eintragen)
+   * Pferd -> BBBB... (hier eintragen)
+   */
+  private readonly articleIdByType: Record<string, string> = {
+    dog: '5f5c3e10-1b2a-4000-9000-000000000001',   // Hund aus Article-Tabelle
+    horse: '5f5c3e10-1b2a-4000-9000-000000000002'  // Pferd aus Article-Tabelle
+  };
 
   form: FormGroup;
   submitted = false;
   isSaving = false;
   hasEvents = false;
 
-  constructor(private fb: FormBuilder, private regService: RegistrationFirebaseService, private eventsService: EventsService) {
+  constructor(
+    private fb: FormBuilder,
+    private regService: RegistrationFirebaseService,  // aktuell ungenutzt, kann später entfernt werden
+    private eventsService: EventsService,
+    private apiService: RegistrationApiService        // NEU: spricht mit Node/MySQL-Backend
+  ) {
     this.events$ = this.eventsService.list$();
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -166,7 +197,8 @@ export class RegistrationFormComponent implements OnInit {
     const registrationId = uuid();
     const eventId = this.form.get('event_id')!.value as string;
 
-    const payload = {
+    // Ursprüngliches Firebase-Payload (falls du es noch brauchst)
+    const firebasePayload = {
       event: { id: eventId },
       registration: {
         id: registrationId,
@@ -200,10 +232,68 @@ export class RegistrationFormComponent implements OnInit {
       })
     };
 
-    console.log('Registration payload', payload);
+    console.log('Firebase-style registration payload', firebasePayload);
+
+    // === Mapping zum Backend-Payload (MySQL) ===
+
+    // Primäre Person = erste Person im Array
+    const primaryPerson = this.people.controls[0];
+    const primaryFirstname = primaryPerson.get('firstname')!.value || '';
+    const primaryLastname = primaryPerson.get('lastname')!.value || '';
+    const primaryName = (primaryFirstname + ' ' + primaryLastname).trim();
+
+    const backendPayload: RegistrationApiPayload = {
+      eventId: eventId,
+      registration: {
+        name: primaryName || this.form.get('emergency_contact_name')!.value || 'Unbekannt',
+        address: primaryPerson.get('address')!.value || '',
+        email: this.form.get('email')!.value,
+        phone: this.form.get('phone')!.value,
+        emergency: this.form.get('emergency_contact_phone')!.value,
+        comment: this.form.get('comment')!.value || ''
+      },
+      persons: this.people.controls.map((ctrl) => {
+        const firstname = ctrl.get('firstname')!.value || '';
+        const lastname = ctrl.get('lastname')!.value || '';
+        const name = (firstname + ' ' + lastname).trim();
+
+        const flag_vegetarian = !!ctrl.get('vegetarian')!.value;
+        const staff = !!ctrl.get('staff')!.value;
+        const orga = !!ctrl.get('orga')!.value;
+        let flag_org = 0;
+        // einfache Abbildung: wenn staff oder orga gesetzt, dann 1, sonst 0
+        if (staff || orga) flag_org = 1;
+
+        return {
+          name,
+          birthday: ctrl.get('birthday')!.value || '',
+          address: ctrl.get('address')!.value || '',
+          comment: ctrl.get('comment')!.value || '',
+          flag_vegetarian,
+          flag_organization: flag_org
+        };
+      }),
+      items: this.items.controls.map((ctrl) => {
+        const typeId = ctrl.get('type_id')!.value as string;
+        const articleId = this.articleIdByType[typeId];
+
+        return {
+          articleId,
+          comment: ctrl.get('comment')!.value || ''
+        };
+      })
+    };
+
+    console.log('Backend (MySQL) payload', backendPayload);
 
     try {
-      await this.regService.submit(payload as any);
+      // 1) An MySQL-Backend senden
+      const result = await this.apiService.submit(backendPayload);
+      console.log('Backend result', result);
+
+      // 2) Optional zusätzlich weiter in Firebase speichern:
+      // await this.regService.submit(firebasePayload as any);
+
       alert('Anmeldung gespeichert!');
       this.submitted = false;
       this.form.reset({
@@ -218,7 +308,7 @@ export class RegistrationFormComponent implements OnInit {
       this.items.clear();
       this.addPerson();
     } catch (err) {
-      console.error(err);
+      console.error('Fehler beim Speichern der Anmeldung', err);
       alert('Fehler beim Speichern der Anmeldung. Bitte erneut versuchen.');
     } finally {
       this.isSaving = false;
