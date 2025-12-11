@@ -39,19 +39,39 @@ app.get('/health', async (req, res) => {
 app.get('/events/open', async (req, res) => {
   console.log('[GET] /events/open called');
   try {
-    // Use BIN_TO_UUID to convert binary UUID to string format
-    const [rows] = await pool.query(`
-      SELECT 
-        BIN_TO_UUID(id) AS id,
-        title,
-        deadline,
-        begin,
-        end,
-        description
-      FROM v_open_events
-    `);
-    console.log('Open events:', rows);
-    return res.json(rows);
+    // First, try to fetch without conversion to see what we get
+    const [rows] = await pool.query('SELECT * FROM v_open_events');
+    console.log('Raw open events:', rows);
+    
+    // Process rows to ensure IDs are strings
+    const processedRows = rows.map(row => {
+      const processed = { ...row };
+      
+      // Check if id is a Buffer and convert it
+      if (processed.id && Buffer.isBuffer(processed.id)) {
+        // Convert Buffer to hex string for UUID
+        const buffer = processed.id;
+        if (buffer.length === 16) {
+          // It's a binary UUID, convert it manually
+          const hex = buffer.toString('hex');
+          processed.id = [
+            hex.slice(0, 8),
+            hex.slice(8, 12),
+            hex.slice(12, 16),
+            hex.slice(16, 20),
+            hex.slice(20, 32)
+          ].join('-');
+        } else {
+          // Not a standard UUID, keep as hex string
+          processed.id = buffer.toString('hex');
+        }
+      }
+      
+      return processed;
+    });
+    
+    console.log('Processed open events:', processedRows);
+    return res.json(processedRows);
   } catch (err) {
     console.error('Error fetching open events:', err);
     return res.status(500).json({ error: 'Failed to fetch open events', details: err.message });
@@ -62,16 +82,39 @@ app.get('/events/open', async (req, res) => {
 app.get('/items', async (req, res) => {
   console.log('[GET] /items called');
   try {
-    // Use BIN_TO_UUID to convert binary UUID to string format
-    const [rows] = await pool.query(`
-      SELECT 
-        BIN_TO_UUID(id) AS id,
-        price,
-        description
-      FROM v_item_articles
-    `);
-    console.log('Item articles:', rows);
-    return res.json(rows);
+    // First, try to fetch without conversion to see what we get
+    const [rows] = await pool.query('SELECT * FROM v_item_articles');
+    console.log('Raw item articles:', rows);
+    
+    // Process rows to ensure IDs are strings
+    const processedRows = rows.map(row => {
+      const processed = { ...row };
+      
+      // Check if id is a Buffer and convert it
+      if (processed.id && Buffer.isBuffer(processed.id)) {
+        // Convert Buffer to hex string for UUID
+        const buffer = processed.id;
+        if (buffer.length === 16) {
+          // It's a binary UUID, convert it manually
+          const hex = buffer.toString('hex');
+          processed.id = [
+            hex.slice(0, 8),
+            hex.slice(8, 12),
+            hex.slice(12, 16),
+            hex.slice(16, 20),
+            hex.slice(20, 32)
+          ].join('-');
+        } else {
+          // Not a standard UUID, keep as hex string
+          processed.id = buffer.toString('hex');
+        }
+      }
+      
+      return processed;
+    });
+    
+    console.log('Processed item articles:', processedRows);
+    return res.json(processedRows);
   } catch (err) {
     console.error('Error fetching items:', err);
     return res.status(500).json({ error: 'Failed to fetch items', details: err.message });
