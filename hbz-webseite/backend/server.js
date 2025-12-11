@@ -39,7 +39,17 @@ app.get('/health', async (req, res) => {
 app.get('/events/open', async (req, res) => {
   console.log('[GET] /events/open called');
   try {
-    const [rows] = await pool.query('SELECT * FROM v_open_events');
+    // Use BIN_TO_UUID to convert binary UUID to string format
+    const [rows] = await pool.query(`
+      SELECT 
+        BIN_TO_UUID(id) AS id,
+        title,
+        deadline,
+        begin,
+        end,
+        description
+      FROM v_open_events
+    `);
     console.log('Open events:', rows);
     return res.json(rows);
   } catch (err) {
@@ -52,7 +62,14 @@ app.get('/events/open', async (req, res) => {
 app.get('/items', async (req, res) => {
   console.log('[GET] /items called');
   try {
-    const [rows] = await pool.query('SELECT * FROM v_item_articles');
+    // Use BIN_TO_UUID to convert binary UUID to string format
+    const [rows] = await pool.query(`
+      SELECT 
+        BIN_TO_UUID(id) AS id,
+        price,
+        description
+      FROM v_item_articles
+    `);
     console.log('Item articles:', rows);
     return res.json(rows);
   } catch (err) {
@@ -97,8 +114,21 @@ app.post('/pricecheck', async (req, res) => {
       
       if (articleData) {
         console.log(`Article data for person ${i + 1}:`, articleData);
+        
+        // Convert binary UUID to string if needed
+        let articleId = articleData.id;
+        if (articleId && Buffer.isBuffer(articleId)) {
+          // Query to convert binary to UUID string
+          const [convertResult] = await connection.query(
+            'SELECT BIN_TO_UUID(?) AS id',
+            [articleId]
+          );
+          articleId = convertResult[0]?.id || articleId;
+          console.log(`Converted article ID to: ${articleId}`);
+        }
+        
         results.push({
-          articleId: articleData.id,
+          articleId: articleId,
           description: articleData.description,
           price: articleData.price
         });
