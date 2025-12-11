@@ -208,7 +208,9 @@ export class RegistrationFormComponent implements OnInit {
       
       // Add person article prices
       for (const result of this.priceCheckResults) {
-        total += result.price || 0;
+        const price = parseFloat(result.price as any) || 0;
+        console.log(`[proceedToOverview] Adding person price: ${price} from`, result);
+        total += price;
       }
       
       // Add selected item prices
@@ -216,13 +218,16 @@ export class RegistrationFormComponent implements OnInit {
         const articleId = itemCtrl.get('article_id')!.value;
         const article = this.itemArticles.find(a => a.id === articleId);
         if (article) {
-          total += article.price || 0;
+          const price = parseFloat(article.price as any) || 0;
+          console.log(`[proceedToOverview] Adding item price: ${price} from`, article);
+          total += price;
         }
       }
       
       this.totalPrice = total;
       
       console.log('[proceedToOverview] Total price calculated:', this.totalPrice);
+      console.log('[proceedToOverview] Number of price check results:', this.priceCheckResults.length);
       
       // Move to overview step
       this.currentStep = 'overview';

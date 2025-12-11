@@ -86,7 +86,7 @@ app.get('/items', async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM v_item_articles');
     console.log('Raw item articles:', rows);
     
-    // Process rows to ensure IDs are strings
+    // Process rows to ensure IDs are strings and prices are numbers
     const processedRows = rows.map(row => {
       const processed = { ...row };
       
@@ -108,6 +108,11 @@ app.get('/items', async (req, res) => {
           // Not a standard UUID, keep as hex string
           processed.id = buffer.toString('hex');
         }
+      }
+      
+      // Convert price to number
+      if (processed.price) {
+        processed.price = parseFloat(processed.price) || 0;
       }
       
       return processed;
@@ -184,7 +189,7 @@ app.post('/pricecheck', async (req, res) => {
         results.push({
           articleId: articleId,
           description: articleData.description,
-          price: articleData.price
+          price: parseFloat(articleData.price) || 0
         });
       } else {
         console.warn(`No article data returned for person ${i + 1}`);
