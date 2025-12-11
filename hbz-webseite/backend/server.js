@@ -35,26 +35,96 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// GET /events/open - Fetch open events
+app.get('/events/open', async (req, res) => {
+  console.log('[GET] /events/open called');
+  try {
+    const [rows] = await pool.query('SELECT * FROM v_open_events');
+    console.log('Open events:', rows);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching open events:', err);
+    return res.status(500).json({ error: 'Failed to fetch open events', details: err.message });
+  }
+});
+
+// GET /items - Fetch bookable items
+app.get('/items', async (req, res) => {
+  console.log('[GET] /items called');
+  try {
+    const [rows] = await pool.query('SELECT * FROM v_item_articles');
+    console.log('Item articles:', rows);
+    return res.json(rows);
+  } catch (err) {
+    console.error('Error fetching items:', err);
+    return res.status(500).json({ error: 'Failed to fetch items', details: err.message });
+  }
+});
+
+// POST /pricecheck - Get article info for persons
+app.post('/pricecheck', async (req, res) => {
+  console.log('[POST] /pricecheck body:', JSON.stringify(req.body, null, 2));
+  
+  const { eventId, persons = [] } = req.body;
+  
+  if (!eventId || !persons || persons.length === 0) {
+    console.warn('Missing eventId or persons data');
+    return res.status(400).json({ error: 'eventId and persons array are required' });
+  }
+  
+  const connection = await pool.getConnection();
+  
+  try {
+    const results = [];
+    
+    for (const person of persons) {
+      const { birthday, flag_organization } = person;
+      
+      // Call stored procedure for each person
+      const [rows] = await connection.query(
+        'CALL p_article_from_person_data(?, ?, ?)',
+        [eventId, birthday, flag_organization ? 1 : 0]
+      );
+      
+      // The procedure returns result set in rows[0]
+      const articleData = rows[0] && rows[0].length > 0 ? rows[0][0] : null;
+      
+      if (articleData) {
+        results.push({
+          articleId: articleData.id,
+          description: articleData.description,
+          price: articleData.price
+        });
+      }
+    }
+    
+    console.log('Price check results:', results);
+    return res.json(results);
+  } catch (err) {
+    console.error('Error in pricecheck:', err);
+    return res.status(500).json({ error: 'Failed to check prices', details: err.message });
+  } finally {
+    connection.release();
+  }
+});
+
 /**
  * POST /registrations
  *
  * Body:
  * {
+ *   "eventId": "uuid-string",
  *   "registration": {...},
  *   "persons": [...],
  *   "items": [...]
  * }
  *
- * Die eventId wird hier testweise fest auf
- * 02cd532f-5d57-4895-a724-940a4c3f51ae gesetzt.
+ * Uses stored procedures instead of direct inserts.
  */
 app.post('/registrations', async (req, res) => {
   console.log('[POST] /registrations body:', JSON.stringify(req.body, null, 2));
 
-  const { registration, persons = [], items = [] } = req.body;
-
-  // Feste Event-UUID aus hbz_events (BIN_TO_UUID(id))
-  const eventId = '02cd532f-5d57-4895-a724-940a4c3f51ae';
+  const { eventId, registration, persons = [], items = [] } = req.body;
 
   if (!eventId || !registration) {
     console.warn('Missing eventId or registration data');
@@ -65,99 +135,72 @@ app.post('/registrations', async (req, res) => {
   await connection.beginTransaction();
 
   try {
-    // Namen ggf. für Anzeige trennen – in der DB gibt es nur "name"
-    let firstname = registration.name;
-    let lastname = '';
-
-    if (registration.name) {
-      const parts = registration.name.trim().split(' ');
-      if (parts.length > 1) {
-        lastname = parts.pop();
-        firstname = parts.join(' ');
-      }
-    }
-    const fullName = (firstname + ' ' + lastname).trim() || registration.name || 'Unbekannt';
-
-    // 1) Registrierung einfügen
-    //    id wird von DB via DEFAULT (UUID_TO_BIN(uuid())) erzeugt
-    //    Trigger setzt @RegistrationId (binary(16)) für diese Session
-    const regSql = `
-      INSERT INTO hbz_registrations
-        (event, name, address, email, phone, emergency, comment)
-      VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)
-    `;
-    const regParams = [
-      eventId,                      // Text-UUID, wird durch UUID_TO_BIN konvertiert
-      fullName,
-      registration.address,
-      registration.email,
-      registration.phone,
-      registration.emergency,
-      registration.comment || null,
-    ];
-
-    console.log('Executing hbz_registrations INSERT:', regSql, regParams);
-    await connection.execute(regSql, regParams);
-
-    // 2) Registrierungs-ID aus Trigger lesen (als Text-UUID)
-    const [regIdRows] = await connection.query(
-      'SELECT BIN_TO_UUID(@RegistrationId) AS registrationId'
+    // 1) Call p_registration_open
+    console.log('Calling p_registration_open...');
+    await connection.query(
+      'CALL p_registration_open(?, ?, ?, ?, ?, ?, ?)',
+      [
+        eventId,
+        registration.name || 'Unbekannt',
+        registration.address || '',
+        registration.email || '',
+        registration.phone || '',
+        registration.emergency || '',
+        registration.comment || null
+      ]
     );
-    const registrationIdText = regIdRows?.[0]?.registrationId || null;
-    console.log('RegistrationId from trigger (text UUID):', registrationIdText);
+    console.log('p_registration_open completed');
 
-    // 3) Personen einfügen
+    // 2) For each person: Call p_registration_person
     for (const person of persons) {
-      console.log('Inserting person for', person.name);
-
-      const flagVeg = person.flag_vegetarian ? 1 : 0; // BIT(1)
-      const flagOrg = person.flag_organization ?? 0;  // BIT(2)
-
-      const personSql = `
-        INSERT INTO hbz_persons
-          (registration, name, birthday, address, comment, flag_vegetarian, flag_organization)
-        VALUES (@RegistrationId, ?, ?, ?, ?, ?, ?)
-      `;
-      const personParams = [
-        person.name,
-        person.birthday, // 'YYYY-MM-DD'
-        person.address,
-        person.comment || null,
-        flagVeg,
-        flagOrg,
-      ];
-      console.log('Executing hbz_persons INSERT:', personSql, personParams);
-      await connection.execute(personSql, personParams);
+      console.log('Calling p_registration_person for', person.name);
+      
+      const flagVeg = person.flag_vegetarian ? 1 : 0;
+      const flagOrg = person.flag_organization ? 1 : 0;
+      
+      await connection.query(
+        'CALL p_registration_person(?, ?, ?, ?, ?, ?)',
+        [
+          person.name || '',
+          person.birthday || null,
+          person.address || '',
+          person.comment || null,
+          flagVeg,
+          flagOrg
+        ]
+      );
     }
+    console.log('All persons inserted');
 
-    // 4) Items einfügen
+    // 3) For each item: Call p_registration_item
     for (const item of items) {
-      console.log('Inserting item for article', item.articleId);
-
-      const itemSql = `
-        INSERT INTO hbz_items
-          (registration, article, comment)
-        VALUES (@RegistrationId, UUID_TO_BIN(?), ?)
-      `;
-      const itemParams = [
-        item.articleId,             // Text-UUID aus hbz_articles
-        item.comment || null,
-      ];
-      console.log('Executing hbz_items INSERT:', itemSql, itemParams);
-      await connection.execute(itemSql, itemParams);
+      console.log('Calling p_registration_item for article', item.articleId);
+      
+      await connection.query(
+        'CALL p_registration_item(?, ?)',
+        [
+          item.articleId,
+          item.comment || null
+        ]
+      );
     }
+    console.log('All items inserted');
+
+    // 4) Call p_registration_finish
+    console.log('Calling p_registration_finish...');
+    const [finishResult] = await connection.query('CALL p_registration_finish()');
+    console.log('p_registration_finish completed:', finishResult);
 
     await connection.commit();
-    console.log('Transaction committed, registrationId:', registrationIdText);
+    console.log('Transaction committed successfully');
 
     return res.status(201).json({
       success: true,
-      registrationId: registrationIdText,
       personsInserted: persons.length,
       itemsInserted: items.length,
     });
   } catch (err) {
-    console.error('Error inserting registration, rolling back:');
+    console.error('Error creating registration, rolling back:');
     console.error('Name:', err.name);
     console.error('Code:', err.code);
     console.error('Message:', err.message);

@@ -15,22 +15,11 @@ import { EventsService, EventModel } from '../../services/events.service';
 import { Observable } from 'rxjs';
 import {
   RegistrationApiService,
-  RegistrationApiPayload
+  RegistrationApiPayload,
+  OpenEvent,
+  ItemArticle,
+  PriceCheckResult
 } from '../../services/registration-api.service';
-
-// Simple UUID util (uses browser crypto when available)
-function uuid(): string {
-  const g = (globalThis as any);
-  if (g.crypto?.randomUUID) {
-    return g.crypto.randomUUID();
-  }
-  // Fallback
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
 @Component({
   selector: 'app-registration-form',
@@ -40,42 +29,26 @@ function uuid(): string {
   styleUrl: './registration-form.component.scss'
 })
 export class RegistrationFormComponent implements OnInit {
-  // Load events from Firestore (später evtl. auf MySQL-API umstellen)
-  events$: Observable<EventModel[]>;
-
-  // Nur Hund und Pferd mit 0€
-  readonly itemTypes = [
-    { id: 'dog', title: 'Hund', price: 0 },
-    { id: 'horse', title: 'Pferd', price: 0 }
-  ];
-
-  /**
-   * Mapping von Formular-Item-Typen ('dog', 'horse')
-   * auf die entsprechenden Article.id-Werte in deiner MySQL-Datenbank.
-   * DIESE IDs MUSST DU AN DEINE DB ANPASSEN!
-   *
-   * Beispiel:
-   * SELECT id, description FROM Article;
-   * Hund  -> AAAA... (hier eintragen)
-   * Pferd -> BBBB... (hier eintragen)
-   */
-  private readonly articleIdByType: Record<string, string> = {
-    dog: '5f5c3e10-1b2a-4000-9000-000000000001',   // Hund aus Article-Tabelle
-    horse: '5f5c3e10-1b2a-4000-9000-000000000002'  // Pferd aus Article-Tabelle
-  };
-
+  // Load events from backend API instead of Firestore
+  events: OpenEvent[] = [];
+  itemArticles: ItemArticle[] = [];
+  
   form: FormGroup;
   submitted = false;
   isSaving = false;
   hasEvents = false;
+  
+  // Two-step flow
+  currentStep: 'form' | 'overview' = 'form';
+  priceCheckResults: PriceCheckResult[] = [];
+  totalPrice = 0;
 
   constructor(
     private fb: FormBuilder,
     private regService: RegistrationFirebaseService,  // aktuell ungenutzt, kann später entfernt werden
     private eventsService: EventsService,
-    private apiService: RegistrationApiService        // NEU: spricht mit Node/MySQL-Backend
+    private apiService: RegistrationApiService
   ) {
-    this.events$ = this.eventsService.list$();
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
       email: ['', [Validators.required, Validators.email]],
@@ -88,18 +61,33 @@ export class RegistrationFormComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     if (this.people.length === 0) {
       this.addPerson();
     }
-    // Preselect first event if available and set hasEvents flag
-    this.events$.subscribe((evs) => {
-      this.hasEvents = !!(evs && evs.length > 0);
-      const current = this.form.get('event_id')!.value as string;
-      if (!current && this.hasEvents) {
-        this.form.get('event_id')!.setValue(evs[0].id);
+    
+    // Fetch open events from backend
+    try {
+      this.events = await this.apiService.getOpenEvents();
+      this.hasEvents = this.events.length > 0;
+      
+      // Preselect first event
+      if (this.hasEvents) {
+        this.form.get('event_id')!.setValue(this.events[0].id);
       }
-    });
+    } catch (err) {
+      console.error('Error fetching open events:', err);
+      this.hasEvents = false;
+    }
+    
+    // Fetch items from backend
+    try {
+      this.itemArticles = await this.apiService.getItems();
+      console.log('Loaded item articles:', this.itemArticles);
+    } catch (err) {
+      console.error('Error fetching items:', err);
+      this.itemArticles = [];
+    }
   }
 
   // Helpers to access arrays
@@ -109,18 +97,6 @@ export class RegistrationFormComponent implements OnInit {
 
   get items(): FormArray<FormGroup> {
     return this.form.get('items') as FormArray<FormGroup>;
-  }
-
-  // Person flags: bit 0 vegetarian, bit 1 staff, bit 2 orga
-  private computeFlags(p: FormGroup): number {
-    const vegetarian = !!p.get('vegetarian')?.value;
-    const staff = !!p.get('staff')?.value;
-    const orga = !!p.get('orga')?.value;
-    let flags = 0;
-    if (vegetarian) flags |= 1 << 0; // 1
-    if (staff) flags |= 1 << 1;      // 2
-    if (orga) flags |= 1 << 2;       // 4
-    return flags >>> 0; // ensure uint
   }
 
   private createPersonGroup(isPrimary = false): FormGroup {
@@ -167,7 +143,7 @@ export class RegistrationFormComponent implements OnInit {
 
   private createItemGroup(): FormGroup {
     return this.fb.group({
-      type_id: ['', Validators.required],
+      article_id: ['', Validators.required],
       comment: ['']
     });
   }
@@ -180,61 +156,83 @@ export class RegistrationFormComponent implements OnInit {
     this.items.removeAt(index);
   }
 
-  get canSubmit(): boolean {
+  get canProceed(): boolean {
     const eventId = this.form.get('event_id')!.value as string;
     return this.hasEvents && !!eventId && this.form.valid && this.people.length > 0;
   }
 
-  async submit(): Promise<void> {
+  // Step 1: "Weiter" button - trigger price check
+  async proceedToOverview(): Promise<void> {
     this.submitted = true;
-    if (!this.canSubmit) {
+    if (!this.canProceed) {
       this.form.markAllAsTouched();
       this.refreshPrimaryPersonValidators();
       return;
     }
 
     this.isSaving = true;
-    const registrationId = uuid();
+    
+    try {
+      const eventId = this.form.get('event_id')!.value as string;
+      
+      // Prepare price check request for persons
+      const priceCheckRequest = {
+        eventId,
+        persons: this.people.controls.map((ctrl) => {
+          const staff = !!ctrl.get('staff')!.value;
+          const orga = !!ctrl.get('orga')!.value;
+          const flag_organization = (staff || orga) ? 1 : 0;
+          
+          return {
+            birthday: ctrl.get('birthday')!.value || '',
+            flag_organization
+          };
+        })
+      };
+      
+      // Get article prices for persons
+      this.priceCheckResults = await this.apiService.priceCheck(priceCheckRequest);
+      
+      // Calculate total price (person articles + items)
+      let total = 0;
+      
+      // Add person article prices
+      for (const result of this.priceCheckResults) {
+        total += result.price || 0;
+      }
+      
+      // Add selected item prices
+      for (const itemCtrl of this.items.controls) {
+        const articleId = itemCtrl.get('article_id')!.value;
+        const article = this.itemArticles.find(a => a.id === articleId);
+        if (article) {
+          total += article.price || 0;
+        }
+      }
+      
+      this.totalPrice = total;
+      
+      // Move to overview step
+      this.currentStep = 'overview';
+      
+    } catch (err) {
+      console.error('Error during price check:', err);
+      alert('Fehler beim Abrufen der Preise. Bitte erneut versuchen.');
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  // Go back to form from overview
+  backToForm(): void {
+    this.currentStep = 'form';
+  }
+
+  // Step 2: "Absenden" button - submit registration
+  async submitRegistration(): Promise<void> {
+    this.isSaving = true;
+    
     const eventId = this.form.get('event_id')!.value as string;
-
-    // Ursprüngliches Firebase-Payload (falls du es noch brauchst)
-    const firebasePayload = {
-      event: { id: eventId },
-      registration: {
-        id: registrationId,
-        event_id: eventId,
-        email: this.form.get('email')!.value,
-        phone: this.form.get('phone')!.value,
-        emergency_contact_name: this.form.get('emergency_contact_name')!.value,
-        emergency_contact_phone: this.form.get('emergency_contact_phone')!.value,
-        comment: this.form.get('comment')!.value || ''
-      },
-      people: this.people.controls.map((ctrl) => {
-        const personId = uuid();
-        return {
-          id: personId,
-          registration_id: registrationId,
-          firstname: ctrl.get('firstname')!.value || '',
-          lastname: ctrl.get('lastname')!.value || '',
-          birthday: ctrl.get('birthday')!.value || '',
-          address: ctrl.get('address')!.value || '',
-          comment: ctrl.get('comment')!.value || '',
-          flags: this.computeFlags(ctrl)
-        };
-      }),
-      items: this.items.controls.map((ctrl) => {
-        return {
-          id: uuid(),
-          registration_id: registrationId,
-          type_id: ctrl.get('type_id')!.value,
-          comment: ctrl.get('comment')!.value || ''
-        };
-      })
-    };
-
-    console.log('Firebase-style registration payload', firebasePayload);
-
-    // === Mapping zum Backend-Payload (MySQL) ===
 
     // Primäre Person = erste Person im Array
     const primaryPerson = this.people.controls[0];
@@ -260,9 +258,7 @@ export class RegistrationFormComponent implements OnInit {
         const flag_vegetarian = !!ctrl.get('vegetarian')!.value;
         const staff = !!ctrl.get('staff')!.value;
         const orga = !!ctrl.get('orga')!.value;
-        let flag_org = 0;
-        // einfache Abbildung: wenn staff oder orga gesetzt, dann 1, sonst 0
-        if (staff || orga) flag_org = 1;
+        const flag_organization = (staff || orga) ? 1 : 0;
 
         return {
           name,
@@ -270,15 +266,12 @@ export class RegistrationFormComponent implements OnInit {
           address: ctrl.get('address')!.value || '',
           comment: ctrl.get('comment')!.value || '',
           flag_vegetarian,
-          flag_organization: flag_org
+          flag_organization
         };
       }),
       items: this.items.controls.map((ctrl) => {
-        const typeId = ctrl.get('type_id')!.value as string;
-        const articleId = this.articleIdByType[typeId];
-
         return {
-          articleId,
+          articleId: ctrl.get('article_id')!.value,
           comment: ctrl.get('comment')!.value || ''
         };
       })
@@ -287,17 +280,19 @@ export class RegistrationFormComponent implements OnInit {
     console.log('Backend (MySQL) payload', backendPayload);
 
     try {
-      // 1) An MySQL-Backend senden
       const result = await this.apiService.submit(backendPayload);
       console.log('Backend result', result);
 
-      // 2) Optional zusätzlich weiter in Firebase speichern:
-      // await this.regService.submit(firebasePayload as any);
-
       alert('Anmeldung gespeichert!');
+      
+      // Reset form to initial state
       this.submitted = false;
+      this.currentStep = 'form';
+      this.priceCheckResults = [];
+      this.totalPrice = 0;
+      
       this.form.reset({
-        event_id: eventId,
+        event_id: this.events.length > 0 ? this.events[0].id : '',
         email: '',
         phone: '',
         emergency_contact_name: '',

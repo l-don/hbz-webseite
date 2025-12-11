@@ -138,6 +138,53 @@
   font-family: 'Cinzel', serif;
 }
 
+.overview-section {
+  margin-top: 20px;
+}
+
+.overview-group {
+  margin-bottom: 20px;
+  
+  h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 18pt;
+    color: $medieval-brown;
+    margin: 0 0 10px 0;
+    font-weight: bold;
+  }
+}
+
+.overview-item {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba($medieval-brown, 0.2);
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.overview-details {
+  margin-left: 20px;
+  font-style: italic;
+  color: $medieval-brown;
+}
+
+.overview-comment {
+  font-size: 0.9em;
+  color: $medieval-brown;
+  opacity: 0.8;
+}
+
+.overview-total {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 2px solid $medieval-gold;
+  font-family: 'Cinzel', serif;
+  font-size: 18pt;
+  color: $medieval-brown;
+  text-align: right;
+}
+
 @media (max-width: 768px) {
   .reg-section { padding: 18px; }
   .item-row { grid-template-columns: 1fr; }

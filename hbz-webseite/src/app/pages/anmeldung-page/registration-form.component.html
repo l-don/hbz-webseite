@@ -5,21 +5,20 @@
     <h1>Anmeldung</h1>
 
     <div class="reg-container">
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <!-- Step 1: Form -->
+      <form [formGroup]="form" *ngIf="currentStep === 'form'" novalidate>
 
         <div class="reg-section">
-          <ng-container *ngIf="(events$ | async) as events">
-            <ng-container *ngIf="events.length > 0; else noEvents">
-              <ng-container *ngIf="events.length > 1; else singleEvent">
-                <label for="event">Veranstaltung</label>
-                <select id="event" formControlName="event_id">
-                  <option *ngFor="let e of events" [value]="e.id">{{ e.title }}</option>
-                </select>
-              </ng-container>
-              <ng-template #singleEvent>
-                <p><strong>Veranstaltung:</strong> {{ events[0].title }}</p>
-              </ng-template>
+          <ng-container *ngIf="events.length > 0; else noEvents">
+            <ng-container *ngIf="events.length > 1; else singleEvent">
+              <label for="event">Veranstaltung</label>
+              <select id="event" formControlName="event_id">
+                <option *ngFor="let e of events" [value]="e.id">{{ e.title }}</option>
+              </select>
             </ng-container>
+            <ng-template #singleEvent>
+              <p><strong>Veranstaltung:</strong> {{ events[0].title }}</p>
+            </ng-template>
           </ng-container>
           <ng-template #noEvents>
             <div class="form-error-banner">
@@ -114,9 +113,11 @@
             <div formArrayName="items">
               <div *ngFor="let it of items.controls; let j = index" [formGroupName]="j" class="item-row">
                 <label>Typ
-                  <select formControlName="type_id">
+                  <select formControlName="article_id">
                     <option value="" disabled>Bitte wählen</option>
-                    <option *ngFor="let t of itemTypes" [value]="t.id">{{ t.title }} ({{ t.price }}€)</option>
+                    <option *ngFor="let article of itemArticles" [value]="article.id">
+                      {{ article.description }} ({{ article.price }}€)
+                    </option>
                   </select>
                 </label>
                 <label>Kommentar
@@ -128,13 +129,13 @@
             </div>
           </div>
 
-          <div class="form-error-banner" *ngIf="submitted && !canSubmit">
-            <strong>Hinweis:</strong> Bitte füllen Sie alle mit „Pflichtfeld“ markierten Felder aus.
+          <div class="form-error-banner" *ngIf="submitted && !canProceed">
+            <strong>Hinweis:</strong> Bitte füllen Sie alle mit „Pflichtfeld" markierten Felder aus.
           </div>
 
           <div class="actions">
             <a routerLink="/anmeldung" class="btn-secondary">Zurück</a>
-            <button type="submit" [disabled]="isSaving" class="custom-button-1">Absenden</button>
+            <button type="button" [disabled]="isSaving" class="custom-button-1" (click)="proceedToOverview()">Weiter</button>
           </div>
         </ng-container>
 
@@ -150,6 +151,50 @@
         </ng-template>
 
       </form>
+
+      <!-- Step 2: Overview -->
+      <div *ngIf="currentStep === 'overview'" class="overview-section">
+        <div class="reg-section">
+          <h2>Übersicht</h2>
+          
+          <div class="overview-group">
+            <h3>Teilnehmer</h3>
+            <div *ngFor="let result of priceCheckResults; let i = index" class="overview-item">
+              <div>
+                <strong>Person {{ i + 1 }}:</strong>
+                {{ people.controls[i].get('firstname')?.value }} {{ people.controls[i].get('lastname')?.value }}
+              </div>
+              <div class="overview-details">
+                {{ result.description }} - {{ result.price }}€
+              </div>
+            </div>
+          </div>
+
+          <div class="overview-group" *ngIf="items.controls.length > 0">
+            <h3>Zusatzoptionen</h3>
+            <div *ngFor="let it of items.controls; let j = index" class="overview-item">
+              <ng-container *ngFor="let article of itemArticles">
+                <div *ngIf="article.id === it.get('article_id')?.value">
+                  {{ article.description }} - {{ article.price }}€
+                  <span *ngIf="it.get('comment')?.value" class="overview-comment">
+                    ({{ it.get('comment')?.value }})
+                  </span>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+
+          <div class="overview-total">
+            <strong>Gesamtpreis:</strong> {{ totalPrice }}€
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-secondary" (click)="backToForm()">Zurück</button>
+          <button type="button" [disabled]="isSaving" class="custom-button-1" (click)="submitRegistration()">Absenden</button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
