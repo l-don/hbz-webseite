@@ -77,32 +77,49 @@ app.post('/pricecheck', async (req, res) => {
   try {
     const results = [];
     
-    for (const person of persons) {
+    for (let i = 0; i < persons.length; i++) {
+      const person = persons[i];
       const { birthday, flag_organization } = person;
       
+      console.log(`Processing person ${i + 1}:`, { birthday, flag_organization, eventId });
+      
       // Call stored procedure for each person
+      // The procedure expects: eventId (text UUID), birthday (DATE), flag_organization (INT)
       const [rows] = await connection.query(
         'CALL p_article_from_person_data(?, ?, ?)',
-        [eventId, birthday, flag_organization ? 1 : 0]
+        [eventId, birthday || null, flag_organization ? 1 : 0]
       );
+      
+      console.log(`Procedure result for person ${i + 1}:`, rows);
       
       // The procedure returns result set in rows[0]
       const articleData = rows[0] && rows[0].length > 0 ? rows[0][0] : null;
       
       if (articleData) {
+        console.log(`Article data for person ${i + 1}:`, articleData);
         results.push({
           articleId: articleData.id,
           description: articleData.description,
           price: articleData.price
         });
+      } else {
+        console.warn(`No article data returned for person ${i + 1}`);
       }
     }
     
     console.log('Price check results:', results);
     return res.json(results);
   } catch (err) {
-    console.error('Error in pricecheck:', err);
-    return res.status(500).json({ error: 'Failed to check prices', details: err.message });
+    console.error('Error in pricecheck:');
+    console.error('Error name:', err.name);
+    console.error('Error code:', err.code);
+    console.error('Error message:', err.message);
+    console.error('Error stack:', err.stack);
+    return res.status(500).json({ 
+      error: 'Failed to check prices', 
+      details: err.message,
+      code: err.code 
+    });
   } finally {
     connection.release();
   }

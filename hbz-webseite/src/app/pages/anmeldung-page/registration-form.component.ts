@@ -175,23 +175,33 @@ export class RegistrationFormComponent implements OnInit {
     try {
       const eventId = this.form.get('event_id')!.value as string;
       
+      console.log('[proceedToOverview] Starting price check for eventId:', eventId);
+      console.log('[proceedToOverview] Number of persons:', this.people.length);
+      
       // Prepare price check request for persons
       const priceCheckRequest = {
         eventId,
-        persons: this.people.controls.map((ctrl) => {
+        persons: this.people.controls.map((ctrl, idx) => {
           const staff = !!ctrl.get('staff')!.value;
           const orga = !!ctrl.get('orga')!.value;
           const flag_organization = (staff || orga) ? 1 : 0;
+          const birthday = ctrl.get('birthday')!.value || '';
+          
+          console.log(`[proceedToOverview] Person ${idx + 1}:`, { birthday, flag_organization });
           
           return {
-            birthday: ctrl.get('birthday')!.value || '',
+            birthday,
             flag_organization
           };
         })
       };
       
+      console.log('[proceedToOverview] Sending price check request:', priceCheckRequest);
+      
       // Get article prices for persons
       this.priceCheckResults = await this.apiService.priceCheck(priceCheckRequest);
+      
+      console.log('[proceedToOverview] Price check results:', this.priceCheckResults);
       
       // Calculate total price (person articles + items)
       let total = 0;
@@ -212,12 +222,30 @@ export class RegistrationFormComponent implements OnInit {
       
       this.totalPrice = total;
       
+      console.log('[proceedToOverview] Total price calculated:', this.totalPrice);
+      
       // Move to overview step
       this.currentStep = 'overview';
       
-    } catch (err) {
-      console.error('Error during price check:', err);
-      alert('Fehler beim Abrufen der Preise. Bitte erneut versuchen.');
+    } catch (err: any) {
+      console.error('[proceedToOverview] Error during price check:', err);
+      
+      // More detailed error message
+      let errorMsg = 'Fehler beim Abrufen der Preise.';
+      if (err.error?.details) {
+        errorMsg += '\nDetails: ' + err.error.details;
+      }
+      if (err.error?.code) {
+        errorMsg += '\nCode: ' + err.error.code;
+      }
+      
+      console.error('[proceedToOverview] Error details:', {
+        message: err.message,
+        error: err.error,
+        status: err.status
+      });
+      
+      alert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
     } finally {
       this.isSaving = false;
     }
