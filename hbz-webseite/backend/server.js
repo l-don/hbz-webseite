@@ -144,9 +144,10 @@ app.post('/pricecheck', async (req, res) => {
       console.log(`Processing person ${i + 1}:`, { birthday, flag_organization, eventId });
       
       // Call stored procedure for each person
-      // The procedure expects: eventId (text UUID), birthday (DATE), flag_organization (INT)
+      // The procedure expects: eventId as BINARY(16), birthday (DATE), flag_organization (INT)
+      // We need to convert the UUID string to binary using UUID_TO_BIN
       const [rows] = await connection.query(
-        'CALL p_article_from_person_data(?, ?, ?)',
+        'CALL p_article_from_person_data(UUID_TO_BIN(?), ?, ?)',
         [eventId, birthday || null, flag_organization ? 1 : 0]
       );
       
@@ -161,12 +162,22 @@ app.post('/pricecheck', async (req, res) => {
         // Convert binary UUID to string if needed
         let articleId = articleData.id;
         if (articleId && Buffer.isBuffer(articleId)) {
-          // Query to convert binary to UUID string
-          const [convertResult] = await connection.query(
-            'SELECT BIN_TO_UUID(?) AS id',
-            [articleId]
-          );
-          articleId = convertResult[0]?.id || articleId;
+          // Convert Buffer to hex string for UUID
+          const buffer = articleId;
+          if (buffer.length === 16) {
+            // It's a binary UUID, convert it manually
+            const hex = buffer.toString('hex');
+            articleId = [
+              hex.slice(0, 8),
+              hex.slice(8, 12),
+              hex.slice(12, 16),
+              hex.slice(16, 20),
+              hex.slice(20, 32)
+            ].join('-');
+          } else {
+            // Not a standard UUID, keep as hex string
+            articleId = buffer.toString('hex');
+          }
           console.log(`Converted article ID to: ${articleId}`);
         }
         
@@ -226,9 +237,10 @@ app.post('/registrations', async (req, res) => {
 
   try {
     // 1) Call p_registration_open
+    // Convert eventId string to binary using UUID_TO_BIN
     console.log('Calling p_registration_open...');
     await connection.query(
-      'CALL p_registration_open(?, ?, ?, ?, ?, ?, ?)',
+      'CALL p_registration_open(UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)',
       [
         eventId,
         registration.name || 'Unbekannt',
@@ -263,11 +275,12 @@ app.post('/registrations', async (req, res) => {
     console.log('All persons inserted');
 
     // 3) For each item: Call p_registration_item
+    // Convert articleId string to binary using UUID_TO_BIN
     for (const item of items) {
       console.log('Calling p_registration_item for article', item.articleId);
       
       await connection.query(
-        'CALL p_registration_item(?, ?)',
+        'CALL p_registration_item(UUID_TO_BIN(?), ?)',
         [
           item.articleId,
           item.comment || null
