@@ -50,7 +50,6 @@ async function detectUuidBinModeForEvent(connection, eventId) {
 }
 
 async function detectUuidBinModeForArticle(connection, articleId) {
-  // Best effort: if hbz_articles exists. If not, we fall back.
   try {
     const [noSwap] = await connection.query(
       'SELECT COUNT(*) AS cnt FROM hbz_articles WHERE id = UUID_TO_BIN(?)',
@@ -74,15 +73,15 @@ async function detectUuidBinModeForArticle(connection, articleId) {
 app.get('/health', async (req, res) => {
   console.log('[GET] /health called');
   try {
-    const [rows] = await pool.query('SELECT 1 AS ok');
-    return res.json({ status: 'ok', db: rows[0].ok });
+    const [rows] = await pool.query('SELECT 1 AS ok, DATABASE() AS db');
+    return res.json({ status: 'ok', db: rows[0].db, ping: rows[0].ok });
   } catch (err) {
     console.error('DB health check error:', err);
     return res.status(500).json({ status: 'error', error: err.message });
   }
 });
 
-// GET /events/open - Fetch open events
+// GET /events/open
 app.get('/events/open', async (req, res) => {
   console.log('[GET] /events/open called');
   try {
@@ -90,9 +89,7 @@ app.get('/events/open', async (req, res) => {
 
     const processedRows = rows.map(row => {
       const processed = { ...row };
-      if (processed.id && Buffer.isBuffer(processed.id)) {
-        processed.id = bufferUuidToString(processed.id);
-      }
+      if (processed.id && Buffer.isBuffer(processed.id)) processed.id = bufferUuidToString(processed.id);
       return processed;
     });
 
@@ -103,7 +100,7 @@ app.get('/events/open', async (req, res) => {
   }
 });
 
-// GET /items - Fetch bookable items
+// GET /items
 app.get('/items', async (req, res) => {
   console.log('[GET] /items called');
   try {
@@ -111,14 +108,8 @@ app.get('/items', async (req, res) => {
 
     const processedRows = rows.map(row => {
       const processed = { ...row };
-
-      if (processed.id && Buffer.isBuffer(processed.id)) {
-        processed.id = bufferUuidToString(processed.id);
-      }
-      if (processed.price) {
-        processed.price = parseFloat(processed.price) || 0;
-      }
-
+      if (processed.id && Buffer.isBuffer(processed.id)) processed.id = bufferUuidToString(processed.id);
+      if (processed.price) processed.price = parseFloat(processed.price) || 0;
       return processed;
     });
 
@@ -129,10 +120,9 @@ app.get('/items', async (req, res) => {
   }
 });
 
-// POST /pricecheck - Get article info for persons
+// POST /pricecheck
 app.post('/pricecheck', async (req, res) => {
   console.log('[POST] /pricecheck body:', JSON.stringify(req.body, null, 2));
-
   const { eventId, persons = [] } = req.body;
 
   if (!eventId || !persons || persons.length === 0) {
@@ -153,10 +143,7 @@ app.post('/pricecheck', async (req, res) => {
 
     const results = [];
 
-    for (let i = 0; i < persons.length; i++) {
-      const person = persons[i];
-      const { birthday, flag_organization } = person;
-
+    for (const person of persons) {
       const callSql =
         eventMode.mode === 'swap'
           ? 'CALL p_article_from_person_data(UUID_TO_BIN(?, 1), ?, ?)'
@@ -164,24 +151,19 @@ app.post('/pricecheck', async (req, res) => {
 
       const [rows] = await connection.query(callSql, [
         eventId,
-        birthday || null,
-        flag_organization ? 1 : 0
+        person.birthday || null,
+        person.flag_organization ? 1 : 0
       ]);
 
       let articleData = null;
       if (Array.isArray(rows)) {
-        if (rows.length > 0 && Array.isArray(rows[0])) {
-          articleData = rows[0][0] || null;
-        } else if (rows.length > 0 && rows[0] && typeof rows[0] === 'object') {
-          articleData = rows[0] || null;
-        }
+        if (rows.length > 0 && Array.isArray(rows[0])) articleData = rows[0][0] || null;
+        else if (rows.length > 0 && rows[0] && typeof rows[0] === 'object') articleData = rows[0] || null;
       }
 
       if (articleData) {
         let articleId = articleData.id;
-        if (articleId && Buffer.isBuffer(articleId)) {
-          articleId = bufferUuidToString(articleId);
-        }
+        if (articleId && Buffer.isBuffer(articleId)) articleId = bufferUuidToString(articleId);
 
         results.push({
           articleId,
@@ -194,51 +176,40 @@ app.post('/pricecheck', async (req, res) => {
     return res.json(results);
   } catch (err) {
     console.error('Error in pricecheck:', err);
-    return res.status(500).json({
-      error: 'Failed to check prices',
-      details: err.message,
-      code: err.code
-    });
+    return res.status(500).json({ error: 'Failed to check prices', details: err.message, code: err.code });
   } finally {
     connection.release();
   }
 });
 
-/**
- * POST /registrations
- *
- * Uses:
- * - p_registration_open
- * - DIRECT INSERT into hbz_persons (workaround for broken p_registration_person)
- * - p_registration_item
- * - p_registration_finish
- */
 app.post('/registrations', async (req, res) => {
   console.log('[POST] /registrations body:', JSON.stringify(req.body, null, 2));
 
   const { eventId, registration, persons = [], items = [] } = req.body;
-
   if (!eventId || !registration) {
     return res.status(400).json({ error: 'eventId and registration are required' });
   }
 
   const connection = await pool.getConnection();
+  let registrationHex = null;
+
   await connection.beginTransaction();
 
   try {
+    const [who] = await connection.query(
+      'SELECT DATABASE() AS db, @@hostname AS mysqlHost, @@port AS mysqlPort, CURRENT_USER() AS currentUser'
+    );
+    console.log('[registrations] connected to:', who?.[0]);
+
     await connection.query('SET @RegistrationId = NULL');
 
-    // Determine correct UUID_TO_BIN mode for eventId
     const eventMode = await detectUuidBinModeForEvent(connection, eventId);
     console.log('[registrations] eventId mode:', eventMode);
 
     if (eventMode.mode === 'unknown') {
-      throw Object.assign(new Error('eventId not found in hbz_events (noswap or swap).'), {
-        code: 'EVENT_NOT_FOUND'
-      });
+      throw Object.assign(new Error('eventId not found in hbz_events (noswap or swap).'), { code: 'EVENT_NOT_FOUND' });
     }
 
-    // 1) Open registration
     console.log('Calling p_registration_open...');
     const openSql =
       eventMode.mode === 'swap'
@@ -256,19 +227,11 @@ app.post('/registrations', async (req, res) => {
     ]);
     console.log('p_registration_open completed');
 
-    // 1b) Make sure @RegistrationId exists and parent row is present
     const [ridRows] = await connection.query(
       'SELECT @RegistrationId AS registrationId, HEX(@RegistrationId) AS registrationIdHex'
     );
     console.log('After p_registration_open, @RegistrationId:', ridRows?.[0]);
-
-    const [dbg] = await connection.query(`
-      SELECT
-        HEX(@RegistrationId) AS regIdHex,
-        BIN_TO_UUID(@RegistrationId) AS regIdUuid_noSwap,
-        BIN_TO_UUID(@RegistrationId, 1) AS regIdUuid_swap
-    `);
-    console.log('DEBUG @RegistrationId interpretations:', dbg?.[0]);
+    registrationHex = ridRows?.[0]?.registrationIdHex || null;
 
     if (!ridRows?.[0]?.registrationId) {
       throw new Error('DB session variable @RegistrationId was not set after p_registration_open.');
@@ -279,13 +242,7 @@ app.post('/registrations', async (req, res) => {
     );
     console.log('hbz_registrations row exists for @RegistrationId:', existsRows?.[0]);
 
-    if (!existsRows?.[0] || existsRows[0].cnt !== 1) {
-      throw new Error('Inserted registration row not found for @RegistrationId.');
-    }
-
-    // 2) Insert persons directly (workaround)
-    // hbz_persons columns:
-    // id (default), registration (BINARY16), name, birthday, address, comment, flag_vegetarian BIT(1), flag_organization BIT(2)
+    // Persons: direct insert
     for (const p of persons) {
       const name = (p.name || '').trim();
       const birthday = p.birthday || null;
@@ -296,9 +253,8 @@ app.post('/registrations', async (req, res) => {
       if (!birthday) throw new Error('Person.birthday is required');
       if (!address) throw new Error('Person.address is required');
 
-      // bit values: use binary literals
       const flagVeg = p.flag_vegetarian ? 1 : 0;
-      const flagOrg = p.flag_organization ? 1 : 0; // we only support 0/1 right now
+      const flagOrg = p.flag_organization ? 1 : 0;
 
       console.log('Inserting person directly into hbz_persons:', { name, birthday, address, flagVeg, flagOrg });
 
@@ -307,24 +263,19 @@ app.post('/registrations', async (req, res) => {
         INSERT INTO hbz_persons
           (registration, name, birthday, address, comment, flag_vegetarian, flag_organization)
         VALUES
-          (@RegistrationId, ?, ?, ?, ?, b?, b?)
+          (@RegistrationId, ?, ?, ?, ?, ?, ?)
         `,
-        [
-          name,
-          birthday,
-          address,
-          comment,
-          flagVeg ? '1' : '0',      // for b?
-          flagOrg ? '01' : '00',    // BIT(2): 00 or 01
-        ]
+        [name, birthday, address, comment, flagVeg, flagOrg]
       );
     }
-    console.log('All persons inserted (direct insert)');
 
-    // 3) Items via procedure
+    const [countInTx] = await connection.query(
+      'SELECT COUNT(*) AS cnt FROM hbz_persons WHERE registration = @RegistrationId'
+    );
+    console.log('[registrations] persons inserted for @RegistrationId (inside TX):', countInTx?.[0]);
+
+    // Items via procedure
     for (const item of items) {
-      console.log('Calling p_registration_item for article', item.articleId);
-
       const articleMode = await detectUuidBinModeForArticle(connection, item.articleId);
       const modeToUse = articleMode.mode === 'unknown' ? eventMode.mode : articleMode.mode;
 
@@ -335,20 +286,41 @@ app.post('/registrations', async (req, res) => {
 
       await connection.query(itemSql, [item.articleId, item.comment || null]);
     }
-    console.log('All items inserted');
 
-    // 4) Finish
-    console.log('Calling p_registration_finish...');
-    await connection.query('CALL p_registration_finish()');
-    console.log('p_registration_finish completed');
-
+    // COMMIT FIRST
     await connection.commit();
     console.log('Transaction committed successfully');
+
+    // Sanity check: after commit we cannot rely on @RegistrationId (new session variables can be reset by procedures),
+    // so we check by the hex we captured.
+    if (registrationHex) {
+      const [countAfterCommit] = await connection.query(
+        'SELECT COUNT(*) AS cnt FROM hbz_persons WHERE registration = UNHEX(?)',
+        [registrationHex]
+      );
+      console.log('[registrations] persons for registrationHex (after commit, same conn):', countAfterCommit?.[0]);
+    }
+
+    // THEN call finish in a fresh connection (outside TX)
+    console.log('Calling p_registration_finish (outside TX, new connection)...');
+    const finishConn = await pool.getConnection();
+    try {
+      const [who2] = await finishConn.query(
+        'SELECT DATABASE() AS db, @@hostname AS mysqlHost, @@port AS mysqlPort, CURRENT_USER() AS currentUser'
+      );
+      console.log('[finish] connected to:', who2?.[0]);
+
+      await finishConn.query('CALL p_registration_finish()');
+      console.log('p_registration_finish completed (outside TX)');
+    } finally {
+      finishConn.release();
+    }
 
     return res.status(201).json({
       success: true,
       personsInserted: persons.length,
       itemsInserted: items.length,
+      registrationIdHex: registrationHex,
     });
   } catch (err) {
     console.error('Error creating registration, rolling back:');
