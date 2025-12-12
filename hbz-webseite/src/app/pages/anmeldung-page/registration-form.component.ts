@@ -32,12 +32,12 @@ export class RegistrationFormComponent implements OnInit {
   // Load events from backend API instead of Firestore
   events: OpenEvent[] = [];
   itemArticles: ItemArticle[] = [];
-  
+
   form: FormGroup;
   submitted = false;
   isSaving = false;
   hasEvents = false;
-  
+
   // Two-step flow
   currentStep: 'form' | 'overview' = 'form';
   priceCheckResults: PriceCheckResult[] = [];
@@ -62,16 +62,18 @@ export class RegistrationFormComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+
+    //Damit man nicht immer erst "Person hinzufügen" klicken muss legen wir direkt eine Person an
     if (this.people.length === 0) {
       this.addPerson();
     }
-    
+
     // Fetch open events from backend
     try {
       this.events = await this.apiService.getOpenEvents();
       this.hasEvents = this.events.length > 0;
-      
-      // Preselect first event
+
+      //Das erste event in der Liste wird automatisch ausgewählt
       if (this.hasEvents) {
         this.form.get('event_id')!.setValue(this.events[0].id);
       }
@@ -79,7 +81,7 @@ export class RegistrationFormComponent implements OnInit {
       console.error('Error fetching open events:', err);
       this.hasEvents = false;
     }
-    
+
     // Fetch items from backend
     try {
       this.itemArticles = await this.apiService.getItems();
@@ -90,7 +92,7 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
-  // Helpers to access arrays
+  //Hilfsmethoden, erhlauben this.people und this.items anstatt this.form.get(...) as FormArray<FormGroup>
   get people(): FormArray<FormGroup> {
     return this.form.get('people') as FormArray<FormGroup>;
   }
@@ -99,6 +101,9 @@ export class RegistrationFormComponent implements OnInit {
     return this.form.get('items') as FormArray<FormGroup>;
   }
 
+  //Erzeugt neues Person formular, wenn eine Person hinzugefügt wird
+  //werte werden aktualisiert, wenn user werte in das formular eingibt
+  //Wird in addPerson aufgerufen, um die daten in der people group zu speichern
   private createPersonGroup(isPrimary = false): FormGroup {
     const group = this.fb.group({
       firstname: [''],
@@ -115,6 +120,9 @@ export class RegistrationFormComponent implements OnInit {
   }
 
   private applyPersonValidators(group: FormGroup, isPrimary: boolean) {
+
+    //Aktuell hat nur Primärperson pflichtfelder,
+    //ToDo: später noch verbessern, dass auch bei weiteren personen pflichtfelder gesetzt werden, sofern weitere Personen angelegt wurden
     const required = isPrimary ? [Validators.required] : [];
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
@@ -171,14 +179,14 @@ export class RegistrationFormComponent implements OnInit {
     }
 
     this.isSaving = true;
-    
+
     try {
       const eventId = this.form.get('event_id')!.value as string;
-      
+
       console.log('[proceedToOverview] Starting price check for eventId:', eventId);
       console.log('[proceedToOverview] Number of persons:', this.people.length);
-      
-      // Prepare price check request for persons
+
+      //Erstellt request mit eventId und preis relevanten infos (orga flag, bday) für jede eingetragene person
       const priceCheckRequest = {
         eventId,
         persons: this.people.controls.map((ctrl, idx) => {
@@ -186,33 +194,33 @@ export class RegistrationFormComponent implements OnInit {
           const orga = !!ctrl.get('orga')!.value;
           const flag_organization = (staff || orga) ? 1 : 0;
           const birthday = ctrl.get('birthday')!.value || '';
-          
+
           console.log(`[proceedToOverview] Person ${idx + 1}:`, { birthday, flag_organization });
-          
+
           return {
             birthday,
             flag_organization
           };
         })
       };
-      
+
       console.log('[proceedToOverview] Sending price check request:', priceCheckRequest);
-      
+
       // Get article prices for persons
       this.priceCheckResults = await this.apiService.priceCheck(priceCheckRequest);
-      
+
       console.log('[proceedToOverview] Price check results:', this.priceCheckResults);
-      
+
       // Calculate total price (person articles + items)
       let total = 0;
-      
+
       // Add person article prices
       for (const result of this.priceCheckResults) {
         const price = parseFloat(result.price as any) || 0;
         console.log(`[proceedToOverview] Adding person price: ${price} from`, result);
         total += price;
       }
-      
+
       // Add selected item prices
       for (const itemCtrl of this.items.controls) {
         const articleId = itemCtrl.get('article_id')!.value;
@@ -223,18 +231,18 @@ export class RegistrationFormComponent implements OnInit {
           total += price;
         }
       }
-      
+
       this.totalPrice = total;
-      
+
       console.log('[proceedToOverview] Total price calculated:', this.totalPrice);
       console.log('[proceedToOverview] Number of price check results:', this.priceCheckResults.length);
-      
+
       // Move to overview step
       this.currentStep = 'overview';
-      
+
     } catch (err: any) {
       console.error('[proceedToOverview] Error during price check:', err);
-      
+
       // More detailed error message
       let errorMsg = 'Fehler beim Abrufen der Preise.';
       if (err.error?.details) {
@@ -243,13 +251,13 @@ export class RegistrationFormComponent implements OnInit {
       if (err.error?.code) {
         errorMsg += '\nCode: ' + err.error.code;
       }
-      
+
       console.error('[proceedToOverview] Error details:', {
         message: err.message,
         error: err.error,
         status: err.status
       });
-      
+
       alert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
     } finally {
       this.isSaving = false;
@@ -264,7 +272,7 @@ export class RegistrationFormComponent implements OnInit {
   // Step 2: "Absenden" button - submit registration
   async submitRegistration(): Promise<void> {
     this.isSaving = true;
-    
+
     const eventId = this.form.get('event_id')!.value as string;
 
     // Primäre Person = erste Person im Array
@@ -317,13 +325,13 @@ export class RegistrationFormComponent implements OnInit {
       console.log('Backend result', result);
 
       alert('Anmeldung gespeichert!');
-      
+
       // Reset form to initial state
       this.submitted = false;
       this.currentStep = 'form';
       this.priceCheckResults = [];
       this.totalPrice = 0;
-      
+
       this.form.reset({
         event_id: this.events.length > 0 ? this.events[0].id : '',
         email: '',

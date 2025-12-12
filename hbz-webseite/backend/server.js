@@ -42,11 +42,11 @@ app.get('/events/open', async (req, res) => {
     // First, try to fetch without conversion to see what we get
     const [rows] = await pool.query('SELECT * FROM v_open_events');
     console.log('Raw open events:', rows);
-    
+
     // Process rows to ensure IDs are strings
     const processedRows = rows.map(row => {
       const processed = { ...row };
-      
+
       // Check if id is a Buffer and convert it
       if (processed.id && Buffer.isBuffer(processed.id)) {
         // Convert Buffer to hex string for UUID
@@ -66,10 +66,10 @@ app.get('/events/open', async (req, res) => {
           processed.id = buffer.toString('hex');
         }
       }
-      
+
       return processed;
     });
-    
+
     console.log('Processed open events:', processedRows);
     return res.json(processedRows);
   } catch (err) {
@@ -85,11 +85,11 @@ app.get('/items', async (req, res) => {
     // First, try to fetch without conversion to see what we get
     const [rows] = await pool.query('SELECT * FROM v_item_articles');
     console.log('Raw item articles:', rows);
-    
+
     // Process rows to ensure IDs are strings and prices are numbers
     const processedRows = rows.map(row => {
       const processed = { ...row };
-      
+
       // Check if id is a Buffer and convert it
       if (processed.id && Buffer.isBuffer(processed.id)) {
         // Convert Buffer to hex string for UUID
@@ -109,15 +109,15 @@ app.get('/items', async (req, res) => {
           processed.id = buffer.toString('hex');
         }
       }
-      
+
       // Convert price to number
       if (processed.price) {
         processed.price = parseFloat(processed.price) || 0;
       }
-      
+
       return processed;
     });
-    
+
     console.log('Processed item articles:', processedRows);
     return res.json(processedRows);
   } catch (err) {
@@ -129,25 +129,25 @@ app.get('/items', async (req, res) => {
 // POST /pricecheck - Get article info for persons
 app.post('/pricecheck', async (req, res) => {
   console.log('[POST] /pricecheck body:', JSON.stringify(req.body, null, 2));
-  
+
   const { eventId, persons = [] } = req.body;
-  
+
   if (!eventId || !persons || persons.length === 0) {
     console.warn('Missing eventId or persons data');
     return res.status(400).json({ error: 'eventId and persons array are required' });
   }
-  
+
   const connection = await pool.getConnection();
-  
+
   try {
     const results = [];
-    
+
     for (let i = 0; i < persons.length; i++) {
       const person = persons[i];
       const { birthday, flag_organization } = person;
-      
+
       console.log(`Processing person ${i + 1}:`, { birthday, flag_organization, eventId });
-      
+
       // Call stored procedure for each person
       // The procedure expects: eventId as BINARY(16), birthday (DATE), flag_organization (INT)
       // We need to convert the UUID string to binary using UUID_TO_BIN
@@ -155,15 +155,26 @@ app.post('/pricecheck', async (req, res) => {
         'CALL p_article_from_person_data(UUID_TO_BIN(?), ?, ?)',
         [eventId, birthday || null, flag_organization ? 1 : 0]
       );
-      
+
       console.log(`Procedure result for person ${i + 1}:`, rows);
-      
-      // The procedure returns result set in rows[0]
-      const articleData = rows[0] && rows[0].length > 0 ? rows[0][0] : null;
-      
+
+      // mysql2 can return different shapes for CALL results.
+      // Normalize to "first row object or null".
+      let articleData = null;
+
+      if (Array.isArray(rows)) {
+        if (rows.length > 0 && Array.isArray(rows[0])) {
+          // Shape: [ [ {..} ], ... ]
+          articleData = rows[0][0] || null;
+        } else if (rows.length > 0 && rows[0] && typeof rows[0] === 'object') {
+          // Shape: [ {..}, {..} ]
+          articleData = rows[0] || null;
+        }
+      }
+
       if (articleData) {
         console.log(`Article data for person ${i + 1}:`, articleData);
-        
+
         // Convert binary UUID to string if needed
         let articleId = articleData.id;
         if (articleId && Buffer.isBuffer(articleId)) {
@@ -185,7 +196,7 @@ app.post('/pricecheck', async (req, res) => {
           }
           console.log(`Converted article ID to: ${articleId}`);
         }
-        
+
         results.push({
           articleId: articleId,
           description: articleData.description,
@@ -195,7 +206,7 @@ app.post('/pricecheck', async (req, res) => {
         console.warn(`No article data returned for person ${i + 1}`);
       }
     }
-    
+
     console.log('Price check results:', results);
     return res.json(results);
   } catch (err) {
@@ -204,10 +215,10 @@ app.post('/pricecheck', async (req, res) => {
     console.error('Error code:', err.code);
     console.error('Error message:', err.message);
     console.error('Error stack:', err.stack);
-    return res.status(500).json({ 
-      error: 'Failed to check prices', 
+    return res.status(500).json({
+      error: 'Failed to check prices',
       details: err.message,
-      code: err.code 
+      code: err.code
     });
   } finally {
     connection.release();
@@ -261,10 +272,10 @@ app.post('/registrations', async (req, res) => {
     // 2) For each person: Call p_registration_person
     for (const person of persons) {
       console.log('Calling p_registration_person for', person.name);
-      
+
       const flagVeg = person.flag_vegetarian ? 1 : 0;
       const flagOrg = person.flag_organization ? 1 : 0;
-      
+
       await connection.query(
         'CALL p_registration_person(?, ?, ?, ?, ?, ?)',
         [
@@ -283,7 +294,7 @@ app.post('/registrations', async (req, res) => {
     // Convert articleId string to binary using UUID_TO_BIN
     for (const item of items) {
       console.log('Calling p_registration_item for article', item.articleId);
-      
+
       await connection.query(
         'CALL p_registration_item(UUID_TO_BIN(?), ?)',
         [
