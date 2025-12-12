@@ -5,7 +5,6 @@ const cors = require('cors');
 
 const app = express();
 
-// CORS: ggf. Origin an deinen Frontend-Port anpassen (4200, 5173, ...)
 app.use(cors({
   origin: 'http://localhost:4200',
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -20,14 +19,62 @@ const pool = mysql.createPool({
   user: process.env.DB_USER || 'test-user',
   password: process.env.DB_PASSWORD || 'SuperHBZS3cr€t',
   database: process.env.DB_NAME || 'hbz-registrations',
+  multipleStatements: false,
 });
+
+function bufferUuidToString(buf) {
+  const hex = buf.toString('hex');
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    hex.slice(12, 16),
+    hex.slice(16, 20),
+    hex.slice(20, 32),
+  ].join('-');
+}
+
+async function detectUuidBinModeForEvent(connection, eventId) {
+  const [rowsNoSwap] = await connection.query(
+    'SELECT COUNT(*) AS cnt FROM hbz_events WHERE id = UUID_TO_BIN(?)',
+    [eventId]
+  );
+  if (rowsNoSwap?.[0]?.cnt === 1) return { mode: 'noswap' };
+
+  const [rowsSwap] = await connection.query(
+    'SELECT COUNT(*) AS cnt FROM hbz_events WHERE id = UUID_TO_BIN(?, 1)',
+    [eventId]
+  );
+  if (rowsSwap?.[0]?.cnt === 1) return { mode: 'swap' };
+
+  return { mode: 'unknown' };
+}
+
+async function detectUuidBinModeForArticle(connection, articleId) {
+  // Best effort: if hbz_articles exists. If not, we fall back.
+  try {
+    const [noSwap] = await connection.query(
+      'SELECT COUNT(*) AS cnt FROM hbz_articles WHERE id = UUID_TO_BIN(?)',
+      [articleId]
+    );
+    if (noSwap?.[0]?.cnt === 1) return { mode: 'noswap' };
+
+    const [swap] = await connection.query(
+      'SELECT COUNT(*) AS cnt FROM hbz_articles WHERE id = UUID_TO_BIN(?, 1)',
+      [articleId]
+    );
+    if (swap?.[0]?.cnt === 1) return { mode: 'swap' };
+
+    return { mode: 'unknown' };
+  } catch {
+    return { mode: 'unknown' };
+  }
+}
 
 // Health-Check gegen DB
 app.get('/health', async (req, res) => {
   console.log('[GET] /health called');
   try {
     const [rows] = await pool.query('SELECT 1 AS ok');
-    console.log('DB health check rows:', rows);
     return res.json({ status: 'ok', db: rows[0].ok });
   } catch (err) {
     console.error('DB health check error:', err);
@@ -39,38 +86,16 @@ app.get('/health', async (req, res) => {
 app.get('/events/open', async (req, res) => {
   console.log('[GET] /events/open called');
   try {
-    // First, try to fetch without conversion to see what we get
     const [rows] = await pool.query('SELECT * FROM v_open_events');
-    console.log('Raw open events:', rows);
 
-    // Process rows to ensure IDs are strings
     const processedRows = rows.map(row => {
       const processed = { ...row };
-
-      // Check if id is a Buffer and convert it
       if (processed.id && Buffer.isBuffer(processed.id)) {
-        // Convert Buffer to hex string for UUID
-        const buffer = processed.id;
-        if (buffer.length === 16) {
-          // It's a binary UUID, convert it manually
-          const hex = buffer.toString('hex');
-          processed.id = [
-            hex.slice(0, 8),
-            hex.slice(8, 12),
-            hex.slice(12, 16),
-            hex.slice(16, 20),
-            hex.slice(20, 32)
-          ].join('-');
-        } else {
-          // Not a standard UUID, keep as hex string
-          processed.id = buffer.toString('hex');
-        }
+        processed.id = bufferUuidToString(processed.id);
       }
-
       return processed;
     });
 
-    console.log('Processed open events:', processedRows);
     return res.json(processedRows);
   } catch (err) {
     console.error('Error fetching open events:', err);
@@ -82,35 +107,14 @@ app.get('/events/open', async (req, res) => {
 app.get('/items', async (req, res) => {
   console.log('[GET] /items called');
   try {
-    // First, try to fetch without conversion to see what we get
     const [rows] = await pool.query('SELECT * FROM v_item_articles');
-    console.log('Raw item articles:', rows);
 
-    // Process rows to ensure IDs are strings and prices are numbers
     const processedRows = rows.map(row => {
       const processed = { ...row };
 
-      // Check if id is a Buffer and convert it
       if (processed.id && Buffer.isBuffer(processed.id)) {
-        // Convert Buffer to hex string for UUID
-        const buffer = processed.id;
-        if (buffer.length === 16) {
-          // It's a binary UUID, convert it manually
-          const hex = buffer.toString('hex');
-          processed.id = [
-            hex.slice(0, 8),
-            hex.slice(8, 12),
-            hex.slice(12, 16),
-            hex.slice(16, 20),
-            hex.slice(20, 32)
-          ].join('-');
-        } else {
-          // Not a standard UUID, keep as hex string
-          processed.id = buffer.toString('hex');
-        }
+        processed.id = bufferUuidToString(processed.id);
       }
-
-      // Convert price to number
       if (processed.price) {
         processed.price = parseFloat(processed.price) || 0;
       }
@@ -118,7 +122,6 @@ app.get('/items', async (req, res) => {
       return processed;
     });
 
-    console.log('Processed item articles:', processedRows);
     return res.json(processedRows);
   } catch (err) {
     console.error('Error fetching items:', err);
@@ -133,88 +136,64 @@ app.post('/pricecheck', async (req, res) => {
   const { eventId, persons = [] } = req.body;
 
   if (!eventId || !persons || persons.length === 0) {
-    console.warn('Missing eventId or persons data');
     return res.status(400).json({ error: 'eventId and persons array are required' });
   }
 
   const connection = await pool.getConnection();
-
   try {
+    const eventMode = await detectUuidBinModeForEvent(connection, eventId);
+    console.log('[pricecheck] eventId mode:', eventMode);
+
+    if (eventMode.mode === 'unknown') {
+      return res.status(400).json({
+        error: 'eventId not found in hbz_events (neither UUID_TO_BIN(?) nor UUID_TO_BIN(?,1)).',
+        eventId
+      });
+    }
+
     const results = [];
 
     for (let i = 0; i < persons.length; i++) {
       const person = persons[i];
       const { birthday, flag_organization } = person;
 
-      console.log(`Processing person ${i + 1}:`, { birthday, flag_organization, eventId });
+      const callSql =
+        eventMode.mode === 'swap'
+          ? 'CALL p_article_from_person_data(UUID_TO_BIN(?, 1), ?, ?)'
+          : 'CALL p_article_from_person_data(UUID_TO_BIN(?), ?, ?)';
 
-      // Call stored procedure for each person
-      // The procedure expects: eventId as BINARY(16), birthday (DATE), flag_organization (INT)
-      // We need to convert the UUID string to binary using UUID_TO_BIN
-      const [rows] = await connection.query(
-        'CALL p_article_from_person_data(UUID_TO_BIN(?), ?, ?)',
-        [eventId, birthday || null, flag_organization ? 1 : 0]
-      );
+      const [rows] = await connection.query(callSql, [
+        eventId,
+        birthday || null,
+        flag_organization ? 1 : 0
+      ]);
 
-      console.log(`Procedure result for person ${i + 1}:`, rows);
-
-      // mysql2 can return different shapes for CALL results.
-      // Normalize to "first row object or null".
       let articleData = null;
-
       if (Array.isArray(rows)) {
         if (rows.length > 0 && Array.isArray(rows[0])) {
-          // Shape: [ [ {..} ], ... ]
           articleData = rows[0][0] || null;
         } else if (rows.length > 0 && rows[0] && typeof rows[0] === 'object') {
-          // Shape: [ {..}, {..} ]
           articleData = rows[0] || null;
         }
       }
 
       if (articleData) {
-        console.log(`Article data for person ${i + 1}:`, articleData);
-
-        // Convert binary UUID to string if needed
         let articleId = articleData.id;
         if (articleId && Buffer.isBuffer(articleId)) {
-          // Convert Buffer to hex string for UUID
-          const buffer = articleId;
-          if (buffer.length === 16) {
-            // It's a binary UUID, convert it manually
-            const hex = buffer.toString('hex');
-            articleId = [
-              hex.slice(0, 8),
-              hex.slice(8, 12),
-              hex.slice(12, 16),
-              hex.slice(16, 20),
-              hex.slice(20, 32)
-            ].join('-');
-          } else {
-            // Not a standard UUID, keep as hex string
-            articleId = buffer.toString('hex');
-          }
-          console.log(`Converted article ID to: ${articleId}`);
+          articleId = bufferUuidToString(articleId);
         }
 
         results.push({
-          articleId: articleId,
+          articleId,
           description: articleData.description,
           price: parseFloat(articleData.price) || 0
         });
-      } else {
-        console.warn(`No article data returned for person ${i + 1}`);
       }
     }
 
-    console.log('Price check results:', results);
     return res.json(results);
   } catch (err) {
-    console.error('Error in pricecheck:');
-    console.error('Error name:', err.name);
-    console.error('Error code:', err.code);
-    console.error('Error message:', err.message);
-    console.error('Error stack:', err.stack);
+    console.error('Error in pricecheck:', err);
     return res.status(500).json({
       error: 'Failed to check prices',
       details: err.message,
@@ -228,15 +207,11 @@ app.post('/pricecheck', async (req, res) => {
 /**
  * POST /registrations
  *
- * Body:
- * {
- *   "eventId": "uuid-string",
- *   "registration": {...},
- *   "persons": [...],
- *   "items": [...]
- * }
- *
- * Uses stored procedures instead of direct inserts.
+ * Uses:
+ * - p_registration_open
+ * - DIRECT INSERT into hbz_persons (workaround for broken p_registration_person)
+ * - p_registration_item
+ * - p_registration_finish
  */
 app.post('/registrations', async (req, res) => {
   console.log('[POST] /registrations body:', JSON.stringify(req.body, null, 2));
@@ -244,7 +219,6 @@ app.post('/registrations', async (req, res) => {
   const { eventId, registration, persons = [], items = [] } = req.body;
 
   if (!eventId || !registration) {
-    console.warn('Missing eventId or registration data');
     return res.status(400).json({ error: 'eventId and registration are required' });
   }
 
@@ -252,63 +226,121 @@ app.post('/registrations', async (req, res) => {
   await connection.beginTransaction();
 
   try {
-    // 1) Call p_registration_open
-    // Convert eventId string to binary using UUID_TO_BIN
+    await connection.query('SET @RegistrationId = NULL');
+
+    // Determine correct UUID_TO_BIN mode for eventId
+    const eventMode = await detectUuidBinModeForEvent(connection, eventId);
+    console.log('[registrations] eventId mode:', eventMode);
+
+    if (eventMode.mode === 'unknown') {
+      throw Object.assign(new Error('eventId not found in hbz_events (noswap or swap).'), {
+        code: 'EVENT_NOT_FOUND'
+      });
+    }
+
+    // 1) Open registration
     console.log('Calling p_registration_open...');
-    await connection.query(
-      'CALL p_registration_open(UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)',
-      [
-        eventId,
-        registration.name || 'Unbekannt',
-        registration.address || '',
-        registration.email || '',
-        registration.phone || '',
-        registration.emergency || '',
-        registration.comment || null
-      ]
-    );
+    const openSql =
+      eventMode.mode === 'swap'
+        ? 'CALL p_registration_open(UUID_TO_BIN(?, 1), ?, ?, ?, ?, ?, ?)'
+        : 'CALL p_registration_open(UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)';
+
+    await connection.query(openSql, [
+      eventId,
+      registration.name || 'Unbekannt',
+      registration.address || '',
+      registration.email || '',
+      registration.phone || '',
+      registration.emergency || '',
+      registration.comment || null
+    ]);
     console.log('p_registration_open completed');
 
-    // 2) For each person: Call p_registration_person
-    for (const person of persons) {
-      console.log('Calling p_registration_person for', person.name);
+    // 1b) Make sure @RegistrationId exists and parent row is present
+    const [ridRows] = await connection.query(
+      'SELECT @RegistrationId AS registrationId, HEX(@RegistrationId) AS registrationIdHex'
+    );
+    console.log('After p_registration_open, @RegistrationId:', ridRows?.[0]);
 
-      const flagVeg = person.flag_vegetarian ? 1 : 0;
-      const flagOrg = person.flag_organization ? 1 : 0;
+    const [dbg] = await connection.query(`
+      SELECT
+        HEX(@RegistrationId) AS regIdHex,
+        BIN_TO_UUID(@RegistrationId) AS regIdUuid_noSwap,
+        BIN_TO_UUID(@RegistrationId, 1) AS regIdUuid_swap
+    `);
+    console.log('DEBUG @RegistrationId interpretations:', dbg?.[0]);
+
+    if (!ridRows?.[0]?.registrationId) {
+      throw new Error('DB session variable @RegistrationId was not set after p_registration_open.');
+    }
+
+    const [existsRows] = await connection.query(
+      'SELECT COUNT(*) AS cnt FROM hbz_registrations WHERE id = @RegistrationId'
+    );
+    console.log('hbz_registrations row exists for @RegistrationId:', existsRows?.[0]);
+
+    if (!existsRows?.[0] || existsRows[0].cnt !== 1) {
+      throw new Error('Inserted registration row not found for @RegistrationId.');
+    }
+
+    // 2) Insert persons directly (workaround)
+    // hbz_persons columns:
+    // id (default), registration (BINARY16), name, birthday, address, comment, flag_vegetarian BIT(1), flag_organization BIT(2)
+    for (const p of persons) {
+      const name = (p.name || '').trim();
+      const birthday = p.birthday || null;
+      const address = (p.address || '').trim();
+      const comment = p.comment || null;
+
+      if (!name) throw new Error('Person.name is required');
+      if (!birthday) throw new Error('Person.birthday is required');
+      if (!address) throw new Error('Person.address is required');
+
+      // bit values: use binary literals
+      const flagVeg = p.flag_vegetarian ? 1 : 0;
+      const flagOrg = p.flag_organization ? 1 : 0; // we only support 0/1 right now
+
+      console.log('Inserting person directly into hbz_persons:', { name, birthday, address, flagVeg, flagOrg });
 
       await connection.query(
-        'CALL p_registration_person(?, ?, ?, ?, ?, ?)',
+        `
+        INSERT INTO hbz_persons
+          (registration, name, birthday, address, comment, flag_vegetarian, flag_organization)
+        VALUES
+          (@RegistrationId, ?, ?, ?, ?, b?, b?)
+        `,
         [
-          person.name || '',
-          person.birthday || null,
-          person.address || '',
-          person.comment || null,
-          flagVeg,
-          flagOrg
+          name,
+          birthday,
+          address,
+          comment,
+          flagVeg ? '1' : '0',      // for b?
+          flagOrg ? '01' : '00',    // BIT(2): 00 or 01
         ]
       );
     }
-    console.log('All persons inserted');
+    console.log('All persons inserted (direct insert)');
 
-    // 3) For each item: Call p_registration_item
-    // Convert articleId string to binary using UUID_TO_BIN
+    // 3) Items via procedure
     for (const item of items) {
       console.log('Calling p_registration_item for article', item.articleId);
 
-      await connection.query(
-        'CALL p_registration_item(UUID_TO_BIN(?), ?)',
-        [
-          item.articleId,
-          item.comment || null
-        ]
-      );
+      const articleMode = await detectUuidBinModeForArticle(connection, item.articleId);
+      const modeToUse = articleMode.mode === 'unknown' ? eventMode.mode : articleMode.mode;
+
+      const itemSql =
+        modeToUse === 'swap'
+          ? 'CALL p_registration_item(UUID_TO_BIN(?, 1), ?)'
+          : 'CALL p_registration_item(UUID_TO_BIN(?), ?)';
+
+      await connection.query(itemSql, [item.articleId, item.comment || null]);
     }
     console.log('All items inserted');
 
-    // 4) Call p_registration_finish
+    // 4) Finish
     console.log('Calling p_registration_finish...');
-    const [finishResult] = await connection.query('CALL p_registration_finish()');
-    console.log('p_registration_finish completed:', finishResult);
+    await connection.query('CALL p_registration_finish()');
+    console.log('p_registration_finish completed');
 
     await connection.commit();
     console.log('Transaction committed successfully');
@@ -329,10 +361,7 @@ app.post('/registrations', async (req, res) => {
     return res.status(500).json({
       error: 'Failed to create registration',
       details: err.message,
-      meta: {
-        name: err.name,
-        code: err.code,
-      }
+      meta: { name: err.name, code: err.code }
     });
   } finally {
     connection.release();
