@@ -324,7 +324,7 @@ export class RegistrationFormComponent implements OnInit {
       const result = await this.apiService.submit(backendPayload);
       console.log('Backend result', result);
 
-      alert('Anmeldung gespeichert!');
+      alert('Anmeldung gespeichert! Sie erhalten in Kürze eine Bestätigungs-E-Mail.');
 
       // Reset form to initial state
       this.submitted = false;

@@ -182,6 +182,7 @@ app.post('/pricecheck', async (req, res) => {
   }
 });
 
+// POST /registrations
 app.post('/registrations', async (req, res) => {
   console.log('[POST] /registrations body:', JSON.stringify(req.body, null, 2));
 
@@ -190,10 +191,9 @@ app.post('/registrations', async (req, res) => {
     return res.status(400).json({ error: 'eventId and registration are required' });
   }
 
+  // Wichtig: Keine beginTransaction() hier.
+  // Die Procedures committen selbst, und sie verlassen sich auf die Session-Variable @RegistrationId.
   const connection = await pool.getConnection();
-  let registrationHex = null;
-
-  await connection.beginTransaction();
 
   try {
     const [who] = await connection.query(
@@ -201,15 +201,17 @@ app.post('/registrations', async (req, res) => {
     );
     console.log('[registrations] connected to:', who?.[0]);
 
-    await connection.query('SET @RegistrationId = NULL');
-
     const eventMode = await detectUuidBinModeForEvent(connection, eventId);
     console.log('[registrations] eventId mode:', eventMode);
 
     if (eventMode.mode === 'unknown') {
-      throw Object.assign(new Error('eventId not found in hbz_events (noswap or swap).'), { code: 'EVENT_NOT_FOUND' });
+      return res.status(400).json({
+        error: 'eventId not found in hbz_events (neither UUID_TO_BIN(?) nor UUID_TO_BIN(?,1)).',
+        eventId
+      });
     }
 
+    // 1) Registrierung öffnen -> Trigger setzt @RegistrationId
     console.log('Calling p_registration_open...');
     const openSql =
       eventMode.mode === 'swap'
@@ -218,103 +220,70 @@ app.post('/registrations', async (req, res) => {
 
     await connection.query(openSql, [
       eventId,
-      registration.name || 'Unbekannt',
-      registration.address || '',
-      registration.email || '',
-      registration.phone || '',
-      registration.emergency || '',
+      (registration.name || 'Unbekannt').trim(),
+      (registration.address || '').trim(),
+      (registration.email || '').trim(),
+      (registration.phone || '').trim(),
+      (registration.emergency || '').trim(),
       registration.comment || null
     ]);
     console.log('p_registration_open completed');
 
+    // Optional: @RegistrationId für Debug/Response abholen
     const [ridRows] = await connection.query(
       'SELECT @RegistrationId AS registrationId, HEX(@RegistrationId) AS registrationIdHex'
     );
-    console.log('After p_registration_open, @RegistrationId:', ridRows?.[0]);
-    registrationHex = ridRows?.[0]?.registrationIdHex || null;
+    const registrationHex = ridRows?.[0]?.registrationIdHex || null;
+    console.log('[registrations] @RegistrationId after open:', ridRows?.[0]);
 
     if (!ridRows?.[0]?.registrationId) {
-      throw new Error('DB session variable @RegistrationId was not set after p_registration_open.');
+      // Wenn das passiert, ist entweder der Trigger kaputt oder die Procedure läuft auf einer anderen Session
+      throw new Error('DB session variable @RegistrationId was not set after p_registration_open (trigger missing/broken?).');
     }
 
-    const [existsRows] = await connection.query(
-      'SELECT COUNT(*) AS cnt FROM hbz_registrations WHERE id = @RegistrationId'
-    );
-    console.log('hbz_registrations row exists for @RegistrationId:', existsRows?.[0]);
-
-    // Persons: direct insert
+    // 2) Personen hinzufügen (über Procedure wie vorgesehen)
     for (const p of persons) {
       const name = (p.name || '').trim();
       const birthday = p.birthday || null;
       const address = (p.address || '').trim();
       const comment = p.comment || null;
 
-      if (!name) throw new Error('Person.name is required');
-      if (!birthday) throw new Error('Person.birthday is required');
-      if (!address) throw new Error('Person.address is required');
+      if (!name) return res.status(400).json({ error: 'Person.name is required' });
+      if (!birthday) return res.status(400).json({ error: 'Person.birthday is required' });
+      if (!address) return res.status(400).json({ error: 'Person.address is required' });
 
       const flagVeg = p.flag_vegetarian ? 1 : 0;
       const flagOrg = p.flag_organization ? 1 : 0;
 
-      console.log('Inserting person directly into hbz_persons:', { name, birthday, address, flagVeg, flagOrg });
-
+      // p_registration_person erwartet BIT(1)/BIT(1) in der Signatur, wir liefern 0/1.
       await connection.query(
-        `
-        INSERT INTO hbz_persons
-          (registration, name, birthday, address, comment, flag_vegetarian, flag_organization)
-        VALUES
-          (@RegistrationId, ?, ?, ?, ?, ?, ?)
-        `,
+        'CALL p_registration_person(?, ?, ?, ?, ?, ?)',
         [name, birthday, address, comment, flagVeg, flagOrg]
       );
     }
+    console.log('[registrations] persons added:', persons.length);
 
-    const [countInTx] = await connection.query(
-      'SELECT COUNT(*) AS cnt FROM hbz_persons WHERE registration = @RegistrationId'
-    );
-    console.log('[registrations] persons inserted for @RegistrationId (inside TX):', countInTx?.[0]);
-
-    // Items via procedure
+    // 3) Items hinzufügen (über Procedure wie vorgesehen)
     for (const item of items) {
-      const articleMode = await detectUuidBinModeForArticle(connection, item.articleId);
-      const modeToUse = articleMode.mode === 'unknown' ? eventMode.mode : articleMode.mode;
+      if (!item?.articleId) return res.status(400).json({ error: 'Item.articleId is required' });
 
-      const itemSql =
-        modeToUse === 'swap'
-          ? 'CALL p_registration_item(UUID_TO_BIN(?, 1), ?)'
-          : 'CALL p_registration_item(UUID_TO_BIN(?), ?)';
-
-      await connection.query(itemSql, [item.articleId, item.comment || null]);
-    }
-
-    // COMMIT FIRST
-    await connection.commit();
-    console.log('Transaction committed successfully');
-
-    // Sanity check: after commit we cannot rely on @RegistrationId (new session variables can be reset by procedures),
-    // so we check by the hex we captured.
-    if (registrationHex) {
-      const [countAfterCommit] = await connection.query(
-        'SELECT COUNT(*) AS cnt FROM hbz_persons WHERE registration = UNHEX(?)',
-        [registrationHex]
+      // Hinweis: hbz_articles.id ist BINARY(4). Daher sollte articleId hier idealerweise als 8-hex-chars kommen
+      // (oder als Buffer). Du verwendest aber detectUuidBinModeForArticle/UUID_TO_BIN Logik aus der alten Version,
+      // die für BINARY(4) eigentlich nicht passt.
+      //
+      // Wir lassen daher hier *keine* UUID_TO_BIN Umwandlung zu und übergeben direkt.
+      // Falls du im Frontend bisher UUIDs nutzt: das muss auf Artikel-IDs (8 hex chars) angepasst werden.
+      await connection.query(
+        'CALL p_registration_item(?, ?)',
+        [item.articleId, item.comment || null]
       );
-      console.log('[registrations] persons for registrationHex (after commit, same conn):', countAfterCommit?.[0]);
     }
+    console.log('[registrations] items added:', items.length);
 
-    // THEN call finish in a fresh connection (outside TX)
-    console.log('Calling p_registration_finish (outside TX, new connection)...');
-    const finishConn = await pool.getConnection();
-    try {
-      const [who2] = await finishConn.query(
-        'SELECT DATABASE() AS db, @@hostname AS mysqlHost, @@port AS mysqlPort, CURRENT_USER() AS currentUser'
-      );
-      console.log('[finish] connected to:', who2?.[0]);
-
-      await finishConn.query('CALL p_registration_finish()');
-      console.log('p_registration_finish completed (outside TX)');
-    } finally {
-      finishConn.release();
-    }
+    // 4) Finish (Status setzen / E-Mail enqueue via Trigger-Kette)
+    console.log('Calling p_registration_finish...');
+    await connection.query('CALL p_registration_finish()');
+    console.log('p_registration_finish completed');
 
     return res.status(201).json({
       success: true,
@@ -323,13 +292,13 @@ app.post('/registrations', async (req, res) => {
       registrationIdHex: registrationHex,
     });
   } catch (err) {
-    console.error('Error creating registration, rolling back:');
+    console.error('Error creating registration:');
     console.error('Name:', err.name);
     console.error('Code:', err.code);
     console.error('Message:', err.message);
     console.error('Stack:', err.stack);
 
-    await connection.rollback();
+    // Kein rollback: wir führen keine Backend-Transaktion mehr. Die DB-Prozeduren committen selbst.
     return res.status(500).json({
       error: 'Failed to create registration',
       details: err.message,
