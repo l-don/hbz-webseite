@@ -7,24 +7,31 @@ const crypto = require('crypto');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: process.env.CORS_ORIGIN,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
 }));
 
 app.use(express.json());
 
+// Fail-fast: required env vars
+const requiredEnv = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
+const missing = requiredEnv.filter(k => !process.env[k] || String(process.env[k]).trim() === '');
+if (missing.length) {
+  throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+}
+
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'limbus.davidlokison.com',
-  port: process.env.DB_PORT || 3310,
-  user: process.env.DB_USER || 'test-user',
-  password: process.env.DB_PASSWORD || 'SuperHBZS3cr€t',
-  database: process.env.DB_NAME || 'hbz-registrations',
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   multipleStatements: false,
 });
 
 /**
- * Request-scoped logger helper
+ *logger helper
  */
 function reqId() {
   return crypto.randomBytes(4).toString('hex');
@@ -41,6 +48,8 @@ function errlog(rid, ...args) {
 
 /**
  * UUID (BINARY(16)) -> string
+ * Used to convert buffer from MySQL to standard UUID string format
+ * later the UUID_TO_BIN() converts this back to BINARY(16)
  */
 function bufferUuidToString(buf) {
   const hex = buf.toString('hex');
@@ -70,6 +79,7 @@ function assertHex8(value, fieldName) {
   }
 }
 
+// Detect UUID_TO_BIN mode for given eventId, we seem to only use noswap, this could be simplified later by only supporting this mode
 async function detectUuidBinModeForEvent(connection, eventId) {
   const [rowsNoSwap] = await connection.query(
     'SELECT COUNT(*) AS cnt FROM hbz_events WHERE id = UUID_TO_BIN(?)',
@@ -86,7 +96,7 @@ async function detectUuidBinModeForEvent(connection, eventId) {
   return { mode: 'unknown' };
 }
 
-// Health-Check gegen DB
+// Health-Check
 app.get('/health', async (req, res) => {
   const rid = reqId();
   log(rid, '[GET] /health called');
