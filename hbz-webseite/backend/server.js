@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2/promise');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const app = express();
 
@@ -22,6 +23,25 @@ const pool = mysql.createPool({
   multipleStatements: false,
 });
 
+/**
+ * Request-scoped logger helper
+ */
+function reqId() {
+  return crypto.randomBytes(4).toString('hex');
+}
+function log(rid, ...args) {
+  console.log(`[${rid}]`, ...args);
+}
+function warn(rid, ...args) {
+  console.warn(`[${rid}]`, ...args);
+}
+function errlog(rid, ...args) {
+  console.error(`[${rid}]`, ...args);
+}
+
+/**
+ * UUID (BINARY(16)) -> string
+ */
 function bufferUuidToString(buf) {
   const hex = buf.toString('hex');
   return [
@@ -31,6 +51,23 @@ function bufferUuidToString(buf) {
     hex.slice(16, 20),
     hex.slice(20, 32),
   ].join('-');
+}
+
+/**
+ * BINARY(4) -> hex(8)
+ */
+function bufferBin4ToHex8(buf) {
+  return buf.toString('hex');
+}
+
+function isHex8(value) {
+  return typeof value === 'string' && /^[0-9a-fA-F]{8}$/.test(value);
+}
+
+function assertHex8(value, fieldName) {
+  if (typeof value !== 'string' || !/^[0-9a-fA-F]{8}$/.test(value)) {
+    throw new Error(`${fieldName} must be an 8-char hex string (e.g. "2f1a9c0b"), got: ${JSON.stringify(value)}`);
+  }
 }
 
 async function detectUuidBinModeForEvent(connection, eventId) {
@@ -49,82 +86,88 @@ async function detectUuidBinModeForEvent(connection, eventId) {
   return { mode: 'unknown' };
 }
 
-async function detectUuidBinModeForArticle(connection, articleId) {
-  try {
-    const [noSwap] = await connection.query(
-      'SELECT COUNT(*) AS cnt FROM hbz_articles WHERE id = UUID_TO_BIN(?)',
-      [articleId]
-    );
-    if (noSwap?.[0]?.cnt === 1) return { mode: 'noswap' };
-
-    const [swap] = await connection.query(
-      'SELECT COUNT(*) AS cnt FROM hbz_articles WHERE id = UUID_TO_BIN(?, 1)',
-      [articleId]
-    );
-    if (swap?.[0]?.cnt === 1) return { mode: 'swap' };
-
-    return { mode: 'unknown' };
-  } catch {
-    return { mode: 'unknown' };
-  }
-}
-
 // Health-Check gegen DB
 app.get('/health', async (req, res) => {
-  console.log('[GET] /health called');
+  const rid = reqId();
+  log(rid, '[GET] /health called');
+
   try {
     const [rows] = await pool.query('SELECT 1 AS ok, DATABASE() AS db');
     return res.json({ status: 'ok', db: rows[0].db, ping: rows[0].ok });
-  } catch (err) {
-    console.error('DB health check error:', err);
-    return res.status(500).json({ status: 'error', error: err.message });
+  } catch (e) {
+    errlog(rid, 'DB health check error:', e);
+    return res.status(500).json({ status: 'error', error: e.message });
   }
 });
 
 // GET /events/open
 app.get('/events/open', async (req, res) => {
-  console.log('[GET] /events/open called');
+  const rid = reqId();
+  log(rid, '[GET] /events/open called');
+
   try {
     const [rows] = await pool.query('SELECT * FROM v_open_events');
 
     const processedRows = rows.map(row => {
       const processed = { ...row };
+      // hbz_events.id is BINARY(16)
       if (processed.id && Buffer.isBuffer(processed.id)) processed.id = bufferUuidToString(processed.id);
       return processed;
     });
 
+    const sample = processedRows.slice(0, 3).map(r => ({ id: r.id, title: r.title }));
+    log(rid, '[events/open] sample:', sample);
+
     return res.json(processedRows);
-  } catch (err) {
-    console.error('Error fetching open events:', err);
-    return res.status(500).json({ error: 'Failed to fetch open events', details: err.message });
+  } catch (e) {
+    errlog(rid, 'Error fetching open events:', e);
+    return res.status(500).json({ error: 'Failed to fetch open events', details: e.message });
   }
 });
 
 // GET /items
 app.get('/items', async (req, res) => {
-  console.log('[GET] /items called');
+  const rid = reqId();
+  log(rid, '[GET] /items called');
+
   try {
     const [rows] = await pool.query('SELECT * FROM v_item_articles');
 
     const processedRows = rows.map(row => {
       const processed = { ...row };
-      if (processed.id && Buffer.isBuffer(processed.id)) processed.id = bufferUuidToString(processed.id);
-      if (processed.price) processed.price = parseFloat(processed.price) || 0;
+
+      // hbz_articles.id is BINARY(4) -> MUST become hex(8) for frontend
+      if (processed.id && Buffer.isBuffer(processed.id)) {
+        processed.id = bufferBin4ToHex8(processed.id);
+      } else if (processed.id != null) {
+        processed.id = String(processed.id);
+      }
+
+      processed.price = processed.price != null ? (parseFloat(processed.price) || 0) : 0;
       return processed;
     });
 
+    const sample = processedRows.slice(0, 10).map(r => ({ id: r.id, isHex8: isHex8(r.id), description: r.description }));
+    log(rid, '[items] sample ids (expect hex8=true):', sample);
+
+    const bad = processedRows.filter(r => !isHex8(r.id)).slice(0, 10);
+    if (bad.length) {
+      warn(rid, '[items] WARNING: some item IDs are not hex(8)! sample:', bad.map(b => b.id));
+    }
+
     return res.json(processedRows);
-  } catch (err) {
-    console.error('Error fetching items:', err);
-    return res.status(500).json({ error: 'Failed to fetch items', details: err.message });
+  } catch (e) {
+    errlog(rid, 'Error fetching items:', e);
+    return res.status(500).json({ error: 'Failed to fetch items', details: e.message });
   }
 });
 
 // POST /pricecheck
 app.post('/pricecheck', async (req, res) => {
-  console.log('[POST] /pricecheck body:', JSON.stringify(req.body, null, 2));
-  const { eventId, persons = [] } = req.body;
+  const rid = reqId();
+  log(rid, '[POST] /pricecheck body:', JSON.stringify(req.body, null, 2));
 
+  const { eventId, persons = [] } = req.body;
   if (!eventId || !persons || persons.length === 0) {
     return res.status(400).json({ error: 'eventId and persons array are required' });
   }
@@ -132,7 +175,7 @@ app.post('/pricecheck', async (req, res) => {
   const connection = await pool.getConnection();
   try {
     const eventMode = await detectUuidBinModeForEvent(connection, eventId);
-    console.log('[pricecheck] eventId mode:', eventMode);
+    log(rid, '[pricecheck] eventId mode:', eventMode);
 
     if (eventMode.mode === 'unknown') {
       return res.status(400).json({
@@ -143,11 +186,13 @@ app.post('/pricecheck', async (req, res) => {
 
     const results = [];
 
-    for (const person of persons) {
+    for (const [idx, person] of persons.entries()) {
       const callSql =
         eventMode.mode === 'swap'
           ? 'CALL p_article_from_person_data(UUID_TO_BIN(?, 1), ?, ?)'
           : 'CALL p_article_from_person_data(UUID_TO_BIN(?), ?, ?)';
+
+      log(rid, `[pricecheck] person#${idx + 1} call:`, { birthday: person.birthday, flag_organization: person.flag_organization });
 
       const [rows] = await connection.query(callSql, [
         eventId,
@@ -163,7 +208,9 @@ app.post('/pricecheck', async (req, res) => {
 
       if (articleData) {
         let articleId = articleData.id;
-        if (articleId && Buffer.isBuffer(articleId)) articleId = bufferUuidToString(articleId);
+
+        // hbz_articles.id is BINARY(4) -> return hex(8)
+        if (articleId && Buffer.isBuffer(articleId)) articleId = bufferBin4ToHex8(articleId);
 
         results.push({
           articleId,
@@ -173,10 +220,12 @@ app.post('/pricecheck', async (req, res) => {
       }
     }
 
+    log(rid, '[pricecheck] results sample:', results.slice(0, 10));
+
     return res.json(results);
-  } catch (err) {
-    console.error('Error in pricecheck:', err);
-    return res.status(500).json({ error: 'Failed to check prices', details: err.message, code: err.code });
+  } catch (e) {
+    errlog(rid, 'Error in pricecheck:', e);
+    return res.status(500).json({ error: 'Failed to check prices', details: e.message, code: e.code });
   } finally {
     connection.release();
   }
@@ -184,25 +233,24 @@ app.post('/pricecheck', async (req, res) => {
 
 // POST /registrations
 app.post('/registrations', async (req, res) => {
-  console.log('[POST] /registrations body:', JSON.stringify(req.body, null, 2));
+  const rid = reqId();
+  log(rid, '[POST] /registrations body:', JSON.stringify(req.body, null, 2));
 
   const { eventId, registration, persons = [], items = [] } = req.body;
   if (!eventId || !registration) {
     return res.status(400).json({ error: 'eventId and registration are required' });
   }
 
-  // Wichtig: Keine beginTransaction() hier.
-  // Die Procedures committen selbst, und sie verlassen sich auf die Session-Variable @RegistrationId.
   const connection = await pool.getConnection();
 
   try {
     const [who] = await connection.query(
       'SELECT DATABASE() AS db, @@hostname AS mysqlHost, @@port AS mysqlPort, CURRENT_USER() AS currentUser'
     );
-    console.log('[registrations] connected to:', who?.[0]);
+    log(rid, '[registrations] connected to:', who?.[0]);
 
     const eventMode = await detectUuidBinModeForEvent(connection, eventId);
-    console.log('[registrations] eventId mode:', eventMode);
+    log(rid, '[registrations] eventId mode:', eventMode);
 
     if (eventMode.mode === 'unknown') {
       return res.status(400).json({
@@ -211,8 +259,10 @@ app.post('/registrations', async (req, res) => {
       });
     }
 
-    // 1) Registrierung öffnen -> Trigger setzt @RegistrationId
-    console.log('Calling p_registration_open...');
+    await connection.query('SET @RegistrationId = NULL');
+
+    // 1) open
+    log(rid, 'Calling p_registration_open...');
     const openSql =
       eventMode.mode === 'swap'
         ? 'CALL p_registration_open(UUID_TO_BIN(?, 1), ?, ?, ?, ?, ?, ?)'
@@ -227,82 +277,99 @@ app.post('/registrations', async (req, res) => {
       (registration.emergency || '').trim(),
       registration.comment || null
     ]);
-    console.log('p_registration_open completed');
+    log(rid, 'p_registration_open completed');
 
-    // Optional: @RegistrationId für Debug/Response abholen
     const [ridRows] = await connection.query(
       'SELECT @RegistrationId AS registrationId, HEX(@RegistrationId) AS registrationIdHex'
     );
     const registrationHex = ridRows?.[0]?.registrationIdHex || null;
-    console.log('[registrations] @RegistrationId after open:', ridRows?.[0]);
+    log(rid, '[registrations] @RegistrationId after open:', ridRows?.[0]);
 
     if (!ridRows?.[0]?.registrationId) {
-      // Wenn das passiert, ist entweder der Trigger kaputt oder die Procedure läuft auf einer anderen Session
       throw new Error('DB session variable @RegistrationId was not set after p_registration_open (trigger missing/broken?).');
     }
 
-    // 2) Personen hinzufügen (über Procedure wie vorgesehen)
-    for (const p of persons) {
+    // 2) persons
+    for (const [idx, p] of persons.entries()) {
       const name = (p.name || '').trim();
       const birthday = p.birthday || null;
       const address = (p.address || '').trim();
       const comment = p.comment || null;
 
-      if (!name) return res.status(400).json({ error: 'Person.name is required' });
-      if (!birthday) return res.status(400).json({ error: 'Person.birthday is required' });
-      if (!address) return res.status(400).json({ error: 'Person.address is required' });
+      if (!name) return res.status(400).json({ error: `Person.name is required (index ${idx})` });
+      if (!birthday) return res.status(400).json({ error: `Person.birthday is required (index ${idx})` });
+      if (!address) return res.status(400).json({ error: `Person.address is required (index ${idx})` });
 
       const flagVeg = p.flag_vegetarian ? 1 : 0;
       const flagOrg = p.flag_organization ? 1 : 0;
 
-      // p_registration_person erwartet BIT(1)/BIT(1) in der Signatur, wir liefern 0/1.
+      log(rid, `[registrations] CALL p_registration_person #${idx + 1}:`, {
+        name,
+        birthday,
+        addressLen: address.length,
+        flagVeg,
+        flagOrg
+      });
+
       await connection.query(
         'CALL p_registration_person(?, ?, ?, ?, ?, ?)',
         [name, birthday, address, comment, flagVeg, flagOrg]
       );
     }
-    console.log('[registrations] persons added:', persons.length);
+    log(rid, '[registrations] persons added:', persons.length);
 
-    // 3) Items hinzufügen (über Procedure wie vorgesehen)
-    for (const item of items) {
-      if (!item?.articleId) return res.status(400).json({ error: 'Item.articleId is required' });
+    // 3) items (strict hex(8) + UNHEX)
+    for (const [idx, item] of items.entries()) {
+      if (!item?.articleId) {
+        return res.status(400).json({ error: `Item.articleId is required (index ${idx})` });
+      }
 
-      // Hinweis: hbz_articles.id ist BINARY(4). Daher sollte articleId hier idealerweise als 8-hex-chars kommen
-      // (oder als Buffer). Du verwendest aber detectUuidBinModeForArticle/UUID_TO_BIN Logik aus der alten Version,
-      // die für BINARY(4) eigentlich nicht passt.
-      //
-      // Wir lassen daher hier *keine* UUID_TO_BIN Umwandlung zu und übergeben direkt.
-      // Falls du im Frontend bisher UUIDs nutzt: das muss auf Artikel-IDs (8 hex chars) angepasst werden.
+      log(rid, `[registrations] raw item #${idx + 1}:`, item);
+
+      assertHex8(item.articleId, `items[${idx}].articleId`);
+
+      // Optional but very helpful: existence check for clearer errors
+      const [exists] = await connection.query(
+        'SELECT COUNT(*) AS cnt FROM hbz_articles WHERE id = UNHEX(?)',
+        [item.articleId]
+      );
+      if ((exists?.[0]?.cnt || 0) !== 1) {
+        throw new Error(`items[${idx}].articleId "${item.articleId}" does not exist in hbz_articles (cnt=${exists?.[0]?.cnt}).`);
+      }
+
+      log(rid, `[registrations] CALL p_registration_item #${idx + 1}:`, { articleIdHex8: item.articleId, comment: item.comment || null });
+
       await connection.query(
-        'CALL p_registration_item(?, ?)',
+        'CALL p_registration_item(UNHEX(?), ?)',
         [item.articleId, item.comment || null]
       );
     }
-    console.log('[registrations] items added:', items.length);
+    log(rid, '[registrations] items added:', items.length);
 
-    // 4) Finish (Status setzen / E-Mail enqueue via Trigger-Kette)
-    console.log('Calling p_registration_finish...');
+    // 4) finish
+    log(rid, 'Calling p_registration_finish...');
     await connection.query('CALL p_registration_finish()');
-    console.log('p_registration_finish completed');
+    log(rid, 'p_registration_finish completed');
 
     return res.status(201).json({
       success: true,
       personsInserted: persons.length,
       itemsInserted: items.length,
       registrationIdHex: registrationHex,
+      requestId: rid
     });
-  } catch (err) {
-    console.error('Error creating registration:');
-    console.error('Name:', err.name);
-    console.error('Code:', err.code);
-    console.error('Message:', err.message);
-    console.error('Stack:', err.stack);
+  } catch (e) {
+    errlog(rid, 'Error creating registration:');
+    errlog(rid, 'Name:', e.name);
+    errlog(rid, 'Code:', e.code);
+    errlog(rid, 'Message:', e.message);
+    errlog(rid, 'Stack:', e.stack);
 
-    // Kein rollback: wir führen keine Backend-Transaktion mehr. Die DB-Prozeduren committen selbst.
     return res.status(500).json({
       error: 'Failed to create registration',
-      details: err.message,
-      meta: { name: err.name, code: err.code }
+      details: e.message,
+      meta: { name: e.name, code: e.code },
+      requestId: rid
     });
   } finally {
     connection.release();
