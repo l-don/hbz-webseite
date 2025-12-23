@@ -60,7 +60,7 @@ export class RegistrationApiService {
 
   // Für lokal: http://localhost:3000
   // Später kannst du das in eine Environment-Variable auslagern.
-  private readonly baseUrl = 'http://localhost:3000';
+  private readonly baseUrl = 'https://limbus.davidlokison.com/herald';
 
   getOpenEvents(): Promise<OpenEvent[]> {
     console.log('[RegistrationApiService] Fetching open events');
