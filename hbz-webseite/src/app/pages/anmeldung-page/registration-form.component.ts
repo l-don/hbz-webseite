@@ -11,8 +11,7 @@ import {
 import { RouterModule } from '@angular/router';
 import { RegistrationFirebaseService } from '../../services/registration-firebase.service';
 import { BannerImgComponent } from '../../banner-img/banner-img.component';
-import { EventsService, EventModel } from '../../services/events.service';
-import { Observable } from 'rxjs';
+import { EventsService } from '../../services/events.service';
 import {
   RegistrationApiService,
   RegistrationApiPayload,
@@ -29,7 +28,6 @@ import {
   styleUrl: './registration-form.component.scss'
 })
 export class RegistrationFormComponent implements OnInit {
-  // Load events from backend API instead of Firestore
   events: OpenEvent[] = [];
   itemArticles: ItemArticle[] = [];
 
@@ -38,24 +36,30 @@ export class RegistrationFormComponent implements OnInit {
   isSaving = false;
   hasEvents = false;
 
-  // Two-step flow
   currentStep: 'form' | 'overview' = 'form';
   priceCheckResults: PriceCheckResult[] = [];
   totalPrice = 0;
 
   constructor(
     private fb: FormBuilder,
-    private regService: RegistrationFirebaseService,  // aktuell ungenutzt, kann später entfernt werden
+    private regService: RegistrationFirebaseService, // aktuell ungenutzt
     private eventsService: EventsService,
     private apiService: RegistrationApiService
   ) {
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+
+      // Buchungsdaten (erweitert, damit Registrierung nicht von Person 1 abhängt)
+      booking_firstname: ['', [Validators.required]],
+      booking_lastname: ['', [Validators.required]],
+      booking_address: ['', [Validators.required]],
+
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
       emergency_contact_name: ['', [Validators.required]],
       emergency_contact_phone: ['', [Validators.required]],
       comment: [''],
+
       people: this.fb.array([]),
       items: this.fb.array([])
     });
@@ -112,7 +116,7 @@ export class RegistrationFormComponent implements OnInit {
       address: [''],
       comment: [''],
       vegetarian: [false],
-      staff: [false],
+      // staff entfernt
       orga: [false]
     });
     this.applyPersonValidators(group, isPrimary);
@@ -120,9 +124,6 @@ export class RegistrationFormComponent implements OnInit {
   }
 
   private applyPersonValidators(group: FormGroup, isPrimary: boolean) {
-
-    //Aktuell hat nur Primärperson pflichtfelder,
-    //ToDo: später noch verbessern, dass auch bei weiteren personen pflichtfelder gesetzt werden, sofern weitere Personen angelegt wurden
     const required = isPrimary ? [Validators.required] : [];
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
@@ -164,12 +165,31 @@ export class RegistrationFormComponent implements OnInit {
     this.items.removeAt(index);
   }
 
+  /** Button in Person 1: Buchungsdaten -> Person 1 übernehmen */
+  copyBookingDataToFirstPerson(): void {
+    if (this.people.length === 0) return;
+
+    const p0 = this.people.at(0);
+
+    const bookingFirstname = this.form.get('booking_firstname')!.value || '';
+    const bookingLastname = this.form.get('booking_lastname')!.value || '';
+    const bookingAddress = this.form.get('booking_address')!.value || '';
+
+    p0.patchValue({
+      firstname: bookingFirstname,
+      lastname: bookingLastname,
+      address: bookingAddress
+    });
+
+    p0.markAsDirty();
+    p0.markAsTouched();
+  }
+
   get canProceed(): boolean {
     const eventId = this.form.get('event_id')!.value as string;
     return this.hasEvents && !!eventId && this.form.valid && this.people.length > 0;
   }
 
-  // Step 1: "Weiter" button - trigger price check
   async proceedToOverview(): Promise<void> {
     this.submitted = true;
     if (!this.canProceed) {
@@ -183,80 +203,46 @@ export class RegistrationFormComponent implements OnInit {
     try {
       const eventId = this.form.get('event_id')!.value as string;
 
-      console.log('[proceedToOverview] Starting price check for eventId:', eventId);
-      console.log('[proceedToOverview] Number of persons:', this.people.length);
-
-      //Erstellt request mit eventId und preis relevanten infos (orga flag, bday) für jede eingetragene person
       const priceCheckRequest = {
         eventId,
         persons: this.people.controls.map((ctrl, idx) => {
-          const staff = !!ctrl.get('staff')!.value;
+          // staff entfernt -> nur orga zählt
           const orga = !!ctrl.get('orga')!.value;
-          const flag_organization = (staff || orga) ? 1 : 0;
+          const flag_organization = orga ? 1 : 0;
           const birthday = ctrl.get('birthday')!.value || '';
 
           console.log(`[proceedToOverview] Person ${idx + 1}:`, { birthday, flag_organization });
 
-          return {
-            birthday,
-            flag_organization
-          };
+          return { birthday, flag_organization };
         })
       };
 
-      console.log('[proceedToOverview] Sending price check request:', priceCheckRequest);
-
-      // Get article prices for persons
       this.priceCheckResults = await this.apiService.priceCheck(priceCheckRequest);
 
-      console.log('[proceedToOverview] Price check results:', this.priceCheckResults);
-
-      // Calculate total price (person articles + items)
       let total = 0;
 
-      // Add person article prices
       for (const result of this.priceCheckResults) {
         const price = parseFloat(result.price as any) || 0;
-        console.log(`[proceedToOverview] Adding person price: ${price} from`, result);
         total += price;
       }
 
-      // Add selected item prices
       for (const itemCtrl of this.items.controls) {
         const articleId = itemCtrl.get('article_id')!.value;
         const article = this.itemArticles.find(a => a.id === articleId);
         if (article) {
           const price = parseFloat(article.price as any) || 0;
-          console.log(`[proceedToOverview] Adding item price: ${price} from`, article);
           total += price;
         }
       }
 
       this.totalPrice = total;
-
-      console.log('[proceedToOverview] Total price calculated:', this.totalPrice);
-      console.log('[proceedToOverview] Number of price check results:', this.priceCheckResults.length);
-
-      // Move to overview step
       this.currentStep = 'overview';
-
     } catch (err: any) {
       console.error('[proceedToOverview] Error during price check:', err);
 
-      // More detailed error message
       let errorMsg = 'Fehler beim Abrufen der Preise.';
-      if (err.error?.details) {
-        errorMsg += '\nDetails: ' + err.error.details;
-      }
-      if (err.error?.code) {
-        errorMsg += '\nCode: ' + err.error.code;
-      }
-
-      console.error('[proceedToOverview] Error details:', {
-        message: err.message,
-        error: err.error,
-        status: err.status
-      });
+      if (err.error?.details) errorMsg += '\nDetails: ' + err.error.details;
+      if (err.error?.code) errorMsg += '\nCode: ' + err.error.code;
 
       alert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
     } finally {
@@ -264,28 +250,25 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
-  // Go back to form from overview
   backToForm(): void {
     this.currentStep = 'form';
   }
 
-  // Step 2: "Absenden" button - submit registration
   async submitRegistration(): Promise<void> {
     this.isSaving = true;
 
     const eventId = this.form.get('event_id')!.value as string;
 
-    // Primäre Person = erste Person im Array
-    const primaryPerson = this.people.controls[0];
-    const primaryFirstname = primaryPerson.get('firstname')!.value || '';
-    const primaryLastname = primaryPerson.get('lastname')!.value || '';
-    const primaryName = (primaryFirstname + ' ' + primaryLastname).trim();
+    // Registrierung kommt jetzt aus Buchungsdaten (nicht aus Person 1)
+    const bookingFirstname = this.form.get('booking_firstname')!.value || '';
+    const bookingLastname = this.form.get('booking_lastname')!.value || '';
+    const bookingName = (bookingFirstname + ' ' + bookingLastname).trim();
 
     const backendPayload: RegistrationApiPayload = {
       eventId: eventId,
       registration: {
-        name: primaryName || this.form.get('emergency_contact_name')!.value || 'Unbekannt',
-        address: primaryPerson.get('address')!.value || '',
+        name: bookingName || this.form.get('emergency_contact_name')!.value || 'Unbekannt',
+        address: this.form.get('booking_address')!.value || '',
         email: this.form.get('email')!.value,
         phone: this.form.get('phone')!.value,
         emergency: this.form.get('emergency_contact_phone')!.value,
@@ -297,9 +280,10 @@ export class RegistrationFormComponent implements OnInit {
         const name = (firstname + ' ' + lastname).trim();
 
         const flag_vegetarian = !!ctrl.get('vegetarian')!.value;
-        const staff = !!ctrl.get('staff')!.value;
+
+        // staff entfernt -> nur orga zählt
         const orga = !!ctrl.get('orga')!.value;
-        const flag_organization = (staff || orga) ? 1 : 0;
+        const flag_organization = orga ? 1 : 0;
 
         return {
           name,
@@ -326,7 +310,6 @@ export class RegistrationFormComponent implements OnInit {
 
       alert('Anmeldung gespeichert! Sie erhalten in Kürze eine Bestätigungs-E-Mail.');
 
-      // Reset form to initial state
       this.submitted = false;
       this.currentStep = 'form';
       this.priceCheckResults = [];
@@ -334,12 +317,18 @@ export class RegistrationFormComponent implements OnInit {
 
       this.form.reset({
         event_id: this.events.length > 0 ? this.events[0].id : '',
+
+        booking_firstname: '',
+        booking_lastname: '',
+        booking_address: '',
+
         email: '',
         phone: '',
         emergency_contact_name: '',
         emergency_contact_phone: '',
         comment: ''
       });
+
       this.people.clear();
       this.items.clear();
       this.addPerson();

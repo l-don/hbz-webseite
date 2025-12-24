@@ -32,29 +32,54 @@
             <h2>Buchungsdaten</h2>
             <div class="grid">
               <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_firstname')?.hasError('required')">Pflichtfeld</div>
+                <label>Vorname (Buchung)
+                  <input type="text" placeholder="Vorname" formControlName="booking_firstname" />
+                </label>
+              </div>
+
+              <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_lastname')?.hasError('required')">Pflichtfeld</div>
+                <label>Nachname (Buchung)
+                  <input type="text" placeholder="Nachname" formControlName="booking_lastname" />
+                </label>
+              </div>
+
+              <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_address')?.hasError('required')">Pflichtfeld</div>
+                <label>Adresse (Buchung)
+                  <input type="text" placeholder="Adresse" formControlName="booking_address" />
+                </label>
+              </div>
+
+              <div>
                 <div class="error-text" *ngIf="submitted && form.get('email')?.hasError('required')">Pflichtfeld</div>
                 <label>Email
                   <input type="email" placeholder="name@example.com" formControlName="email" />
                 </label>
               </div>
+
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('phone')?.hasError('required')">Pflichtfeld</div>
                 <label>Telefon
                   <input type="tel" placeholder="+49 ..." formControlName="phone" />
                 </label>
               </div>
+
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('emergency_contact_name')?.hasError('required')">Pflichtfeld</div>
                 <label>Notfallkontakt Name
                   <input type="text" placeholder="Name" formControlName="emergency_contact_name" />
                 </label>
               </div>
+
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('emergency_contact_phone')?.hasError('required')">Pflichtfeld</div>
                 <label>Notfallkontakt Nummer
                   <input type="tel" placeholder="+49 ..." formControlName="emergency_contact_phone" />
                 </label>
               </div>
+
               <label>Kommentar zur Buchung
                 <textarea rows="3" placeholder="Anmerkungen" formControlName="comment"></textarea>
               </label>
@@ -67,8 +92,18 @@
               <div *ngFor="let p of people.controls; let i = index" [formGroupName]="i" class="person-card">
                 <div class="person-header">
                   <strong>Person {{ i + 1 }}</strong>
+
+                  <button
+                    type="button"
+                    class="btn-ghost"
+                    *ngIf="i === 0"
+                    (click)="copyBookingDataToFirstPerson()">
+                    Daten aus Buchungsdaten übernehmen
+                  </button>
+
                   <button type="button" class="btn-ghost" (click)="removePerson(i)" *ngIf="people.length > 1">Entfernen</button>
                 </div>
+
                 <div class="grid">
                   <div>
                     <div class="error-text" *ngIf="submitted && i === 0 && p.get('firstname')?.hasError('required')">Pflichtfeld</div>
@@ -98,9 +133,9 @@
                     <input type="text" formControlName="comment" />
                   </label>
                 </div>
+
                 <div class="flags">
                   <label><input type="checkbox" formControlName="vegetarian" /> Vegetarisch</label>
-                  <label><input type="checkbox" formControlName="staff" /> Mitarbeiter</label>
                   <label><input type="checkbox" formControlName="orga" /> Orga</label>
                 </div>
               </div>
@@ -156,7 +191,7 @@
       <div *ngIf="currentStep === 'overview'" class="overview-section">
         <div class="reg-section">
           <h2>Übersicht</h2>
-          
+
           <div class="overview-group">
             <h3>Teilnehmer</h3>
             <div *ngFor="let result of priceCheckResults; let i = index" class="overview-item">
