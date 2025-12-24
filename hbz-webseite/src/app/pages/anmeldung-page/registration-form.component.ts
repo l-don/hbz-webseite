@@ -28,6 +28,7 @@ import {
   styleUrl: './registration-form.component.scss'
 })
 export class RegistrationFormComponent implements OnInit {
+  // Load events from backend API instead of Firestore
   events: OpenEvent[] = [];
   itemArticles: ItemArticle[] = [];
 
@@ -36,20 +37,21 @@ export class RegistrationFormComponent implements OnInit {
   isSaving = false;
   hasEvents = false;
 
+  // Two-step flow
   currentStep: 'form' | 'overview' = 'form';
   priceCheckResults: PriceCheckResult[] = [];
   totalPrice = 0;
 
   constructor(
     private fb: FormBuilder,
-    private regService: RegistrationFirebaseService, // aktuell ungenutzt
+    private regService: RegistrationFirebaseService, // aktuell ungenutzt, kann später entfernt werden
     private eventsService: EventsService,
     private apiService: RegistrationApiService
   ) {
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
 
-      // Buchungsdaten (erweitert, damit Registrierung nicht von Person 1 abhängt)
+      // Buchungsdaten (Ersteller der Registrierung)
       booking_firstname: ['', [Validators.required]],
       booking_lastname: ['', [Validators.required]],
       booking_address: ['', [Validators.required]],
@@ -60,14 +62,17 @@ export class RegistrationFormComponent implements OnInit {
       emergency_contact_phone: ['', [Validators.required]],
       comment: [''],
 
+      // AGB / DSGVO
+      agb_accepted: [false, [Validators.requiredTrue]],
+      dsgvo_accepted: [false, [Validators.requiredTrue]],
+
       people: this.fb.array([]),
       items: this.fb.array([])
     });
   }
 
   async ngOnInit(): Promise<void> {
-
-    //Damit man nicht immer erst "Person hinzufügen" klicken muss legen wir direkt eine Person an
+    // Damit man nicht immer erst "Person hinzufügen" klicken muss legen wir direkt eine Person an
     if (this.people.length === 0) {
       this.addPerson();
     }
@@ -77,7 +82,7 @@ export class RegistrationFormComponent implements OnInit {
       this.events = await this.apiService.getOpenEvents();
       this.hasEvents = this.events.length > 0;
 
-      //Das erste event in der Liste wird automatisch ausgewählt
+      // Das erste event in der Liste wird automatisch ausgewählt
       if (this.hasEvents) {
         this.form.get('event_id')!.setValue(this.events[0].id);
       }
@@ -96,7 +101,7 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
-  //Hilfsmethoden, erhlauben this.people und this.items anstatt this.form.get(...) as FormArray<FormGroup>
+  // Hilfsmethoden, erlauben this.people und this.items anstatt this.form.get(...) as FormArray<FormGroup>
   get people(): FormArray<FormGroup> {
     return this.form.get('people') as FormArray<FormGroup>;
   }
@@ -105,9 +110,14 @@ export class RegistrationFormComponent implements OnInit {
     return this.form.get('items') as FormArray<FormGroup>;
   }
 
-  //Erzeugt neues Person formular, wenn eine Person hinzugefügt wird
-  //werte werden aktualisiert, wenn user werte in das formular eingibt
-  //Wird in addPerson aufgerufen, um die daten in der people group zu speichern
+  get canSubmit(): boolean {
+    return (
+      this.form.get('agb_accepted')?.value === true &&
+      this.form.get('dsgvo_accepted')?.value === true
+    );
+  }
+
+  // Erzeugt neues Person formular
   private createPersonGroup(isPrimary = false): FormGroup {
     const group = this.fb.group({
       firstname: [''],
@@ -124,6 +134,7 @@ export class RegistrationFormComponent implements OnInit {
   }
 
   private applyPersonValidators(group: FormGroup, isPrimary: boolean) {
+    // Aktuell hat nur Primärperson Pflichtfelder
     const required = isPrimary ? [Validators.required] : [];
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
@@ -165,7 +176,6 @@ export class RegistrationFormComponent implements OnInit {
     this.items.removeAt(index);
   }
 
-  /** Button in Person 1: Buchungsdaten -> Person 1 übernehmen */
   copyBookingDataToFirstPerson(): void {
     if (this.people.length === 0) return;
 
@@ -187,9 +197,18 @@ export class RegistrationFormComponent implements OnInit {
 
   get canProceed(): boolean {
     const eventId = this.form.get('event_id')!.value as string;
-    return this.hasEvents && !!eventId && this.form.valid && this.people.length > 0;
+
+    // AGB/DSGVO zählen erst bei canSubmit (Step 2), nicht bei Step 1
+    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted'];
+
+    const step1Valid = Object.keys(this.form.controls)
+      .filter((key) => !controlsToIgnore.includes(key))
+      .every((key) => this.form.get(key)!.valid);
+
+    return this.hasEvents && !!eventId && step1Valid && this.people.length > 0;
   }
 
+  // Step 1: "Weiter" button - trigger price check
   async proceedToOverview(): Promise<void> {
     this.submitted = true;
     if (!this.canProceed) {
@@ -203,46 +222,77 @@ export class RegistrationFormComponent implements OnInit {
     try {
       const eventId = this.form.get('event_id')!.value as string;
 
+      console.log('[proceedToOverview] Starting price check for eventId:', eventId);
+      console.log('[proceedToOverview] Number of persons:', this.people.length);
+
       const priceCheckRequest = {
         eventId,
         persons: this.people.controls.map((ctrl, idx) => {
-          // staff entfernt -> nur orga zählt
           const orga = !!ctrl.get('orga')!.value;
           const flag_organization = orga ? 1 : 0;
           const birthday = ctrl.get('birthday')!.value || '';
 
           console.log(`[proceedToOverview] Person ${idx + 1}:`, { birthday, flag_organization });
 
-          return { birthday, flag_organization };
+          return {
+            birthday,
+            flag_organization
+          };
         })
       };
 
+      console.log('[proceedToOverview] Sending price check request:', priceCheckRequest);
+
+      // Get article prices for persons
       this.priceCheckResults = await this.apiService.priceCheck(priceCheckRequest);
 
+      console.log('[proceedToOverview] Price check results:', this.priceCheckResults);
+
+      // Calculate total price (person articles + items)
       let total = 0;
 
+      // Add person article prices
       for (const result of this.priceCheckResults) {
         const price = parseFloat(result.price as any) || 0;
+        console.log(`[proceedToOverview] Adding person price: ${price} from`, result);
         total += price;
       }
 
+      // Add selected item prices
       for (const itemCtrl of this.items.controls) {
         const articleId = itemCtrl.get('article_id')!.value;
         const article = this.itemArticles.find(a => a.id === articleId);
         if (article) {
           const price = parseFloat(article.price as any) || 0;
+          console.log(`[proceedToOverview] Adding item price: ${price} from`, article);
           total += price;
         }
       }
 
       this.totalPrice = total;
+
+      console.log('[proceedToOverview] Total price calculated:', this.totalPrice);
+      console.log('[proceedToOverview] Number of price check results:', this.priceCheckResults.length);
+
+      // Move to overview step
       this.currentStep = 'overview';
+
     } catch (err: any) {
       console.error('[proceedToOverview] Error during price check:', err);
 
       let errorMsg = 'Fehler beim Abrufen der Preise.';
-      if (err.error?.details) errorMsg += '\nDetails: ' + err.error.details;
-      if (err.error?.code) errorMsg += '\nCode: ' + err.error.code;
+      if (err.error?.details) {
+        errorMsg += '\nDetails: ' + err.error.details;
+      }
+      if (err.error?.code) {
+        errorMsg += '\nCode: ' + err.error.code;
+      }
+
+      console.error('[proceedToOverview] Error details:', {
+        message: err.message,
+        error: err.error,
+        status: err.status
+      });
 
       alert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
     } finally {
@@ -250,16 +300,26 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
+  // Go back to form from overview
   backToForm(): void {
     this.currentStep = 'form';
   }
 
+  // Step 2: "Absenden" button - submit registration
   async submitRegistration(): Promise<void> {
     this.isSaving = true;
 
+    // Sicherheitscheck (auch wenn Button disabled ist)
+    if (!this.canSubmit) {
+      this.form.markAllAsTouched();
+      alert('Bitte akzeptieren Sie AGB und Datenschutzerklärung.');
+      this.isSaving = false;
+      return;
+    }
+
     const eventId = this.form.get('event_id')!.value as string;
 
-    // Registrierung kommt jetzt aus Buchungsdaten (nicht aus Person 1)
+    // Registrierung wird aus Buchungsdaten erstellt (nicht mehr aus Person 1)
     const bookingFirstname = this.form.get('booking_firstname')!.value || '';
     const bookingLastname = this.form.get('booking_lastname')!.value || '';
     const bookingName = (bookingFirstname + ' ' + bookingLastname).trim();
@@ -280,8 +340,6 @@ export class RegistrationFormComponent implements OnInit {
         const name = (firstname + ' ' + lastname).trim();
 
         const flag_vegetarian = !!ctrl.get('vegetarian')!.value;
-
-        // staff entfernt -> nur orga zählt
         const orga = !!ctrl.get('orga')!.value;
         const flag_organization = orga ? 1 : 0;
 
@@ -310,6 +368,7 @@ export class RegistrationFormComponent implements OnInit {
 
       alert('Anmeldung gespeichert! Sie erhalten in Kürze eine Bestätigungs-E-Mail.');
 
+      // Reset form to initial state
       this.submitted = false;
       this.currentStep = 'form';
       this.priceCheckResults = [];
@@ -326,7 +385,10 @@ export class RegistrationFormComponent implements OnInit {
         phone: '',
         emergency_contact_name: '',
         emergency_contact_phone: '',
-        comment: ''
+        comment: '',
+
+        agb_accepted: false,
+        dsgvo_accepted: false
       });
 
       this.people.clear();

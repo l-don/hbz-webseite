@@ -96,8 +96,8 @@
                   <button
                     type="button"
                     class="btn-ghost"
-                    *ngIf="i === 0"
-                    (click)="copyBookingDataToFirstPerson()">
+                    (click)="copyBookingDataToFirstPerson()"
+                    *ngIf="i === 0">
                     Daten aus Buchungsdaten übernehmen
                   </button>
 
@@ -188,7 +188,7 @@
       </form>
 
       <!-- Step 2: Overview -->
-      <div *ngIf="currentStep === 'overview'" class="overview-section">
+      <div *ngIf="currentStep === 'overview'" class="overview-section" [formGroup]="form">
         <div class="reg-section">
           <h2>Übersicht</h2>
 
@@ -224,9 +224,34 @@
           </div>
         </div>
 
+        <!-- Zustimmung AGB / DSGVO -->
+        <div class="reg-section consent-section" [formGroup]="form">
+          <h3>Einverständnis</h3>
+
+          <div class="consent-list">
+            <label class="consent-item">
+              <input class="consent-checkbox" type="checkbox" formControlName="dsgvo_accepted" />
+              <a class="consent-link" routerLink="/dsgvo" target="_blank" rel="noopener">Datenschutzerklärung</a>
+              <span class="consent-text">gelesen und stimme ihr zu.</span>
+            </label>
+
+            <label class="consent-item">
+              <input class="consent-checkbox" type="checkbox" formControlName="agb_accepted" />
+              <a class="consent-link" routerLink="/agb" target="_blank" rel="noopener">AGB</a>
+              <span class="consent-text">gelesen und stimme ihr zu.</span>
+            </label>
+          </div>
+
+          <div
+            class="error-text"
+            *ngIf="submitted && (!form.get('dsgvo_accepted')?.value || !form.get('agb_accepted')?.value)">
+            Bitte akzeptieren Sie AGB und Datenschutzerklärung, um fortzufahren.
+          </div>
+        </div>
+
         <div class="actions">
           <button type="button" class="btn-secondary" (click)="backToForm()">Zurück</button>
-          <button type="button" [disabled]="isSaving" class="custom-button-1" (click)="submitRegistration()">Absenden</button>
+          <button type="button" [disabled]="isSaving || !canSubmit" class="custom-button-1" (click)="submitRegistration()">Absenden</button>
         </div>
       </div>
 
