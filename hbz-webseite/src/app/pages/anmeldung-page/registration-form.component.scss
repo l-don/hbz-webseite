@@ -105,6 +105,20 @@
   &:hover { background: rgba($parchment, 0.8); }
 }
 
+.actions a.btn-secondary {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 44px;        /* manuell kleiner/größer setzen */
+  padding: 0 16px;     /* vertikales Padding raus, damit Höhe wirklich passt */
+  line-height: 1;      /* verhindert "zu hohe" Standard-Line-Height */
+
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
 .btn-ghost {
   padding: 6px 10px;
   border: 1px solid rgba($medieval-brown, 0.6);
