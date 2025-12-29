@@ -8,7 +8,7 @@ import {
   FormGroup,
   Validators
 } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { RegistrationFirebaseService } from '../../services/registration-firebase.service';
 import { BannerImgComponent } from '../../banner-img/banner-img.component';
 import { EventsService } from '../../services/events.service';
@@ -46,7 +46,8 @@ export class RegistrationFormComponent implements OnInit {
     private fb: FormBuilder,
     private regService: RegistrationFirebaseService, // aktuell ungenutzt, kann später entfernt werden
     private eventsService: EventsService,
-    private apiService: RegistrationApiService
+    private apiService: RegistrationApiService,
+    private router: Router
   ) {
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
@@ -429,6 +430,8 @@ export class RegistrationFormComponent implements OnInit {
       this.people.clear();
       this.items.clear();
       this.addPerson();
+
+      await this.router.navigateByUrl('/');
     } catch (err) {
       console.error('Fehler beim Speichern der Anmeldung', err);
       alert('Fehler beim Speichern der Anmeldung. Bitte erneut versuchen.');
