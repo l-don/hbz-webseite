@@ -1,3 +1,5 @@
+/* src/app/pages/anmeldung-page/registration-form.component.scss */
+
 @import '../../../styles';
 
 .reg-container {
@@ -49,10 +51,29 @@
   }
 }
 
+.reg-subtitle {
+  font-family: 'Cinzel', serif;
+  color: $medieval-brown;
+  margin: 18px 0 10px;
+  font-weight: 700;
+  font-size: 14pt;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
+}
+
+/* Grid-Utilities / Abschnitt-spezifische Tweaks */
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.emergency-grid {
+  .comment-field {
+    margin-top: 10px; // Abstand zu den Notfallkontakt-Infos
+  }
 }
 
 .person-card {
@@ -111,9 +132,9 @@
   align-items: center;
   justify-content: center;
 
-  height: 44px;        /* manuell kleiner/größer setzen */
-  padding: 0 16px;     /* vertikales Padding raus, damit Höhe wirklich passt */
-  line-height: 1;      /* verhindert "zu hohe" Standard-Line-Height */
+  height: 44px;
+  padding: 0 16px;
+  line-height: 1;
 
   box-sizing: border-box;
   text-decoration: none;
@@ -243,7 +264,7 @@
     width: auto !important;
     padding: 0 !important;
     margin: 0 !important;
-    accent-color: $medieval-gold; // moderne browser
+    accent-color: $medieval-gold;
 
     // optisches "einrasten"
     transform: translateY(1px);
@@ -263,6 +284,13 @@
     font-family: 'PT Serif', serif;
     color: $medieval-black;
   }
+}
+
+.hint-text {
+  font-size: 0.95rem; // kleiner als globales p (15pt)
+  line-height: 1.4;
+  margin: 6px 0 12px;
+  opacity: 0.9;
 }
 
 @media (max-width: 768px) {

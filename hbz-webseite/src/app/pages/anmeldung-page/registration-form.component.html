@@ -30,7 +30,8 @@
         <ng-container *ngIf="hasEvents; else noEventBlock">
           <div class="reg-section">
             <h2>Buchungsdaten</h2>
-            <div class="grid">
+
+            <div class="grid booking-grid">
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('booking_firstname')?.hasError('required')">Pflichtfeld</div>
                 <label>Vorname (Buchung)
@@ -42,13 +43,6 @@
                 <div class="error-text" *ngIf="submitted && form.get('booking_lastname')?.hasError('required')">Pflichtfeld</div>
                 <label>Nachname (Buchung)
                   <input type="text" placeholder="Nachname" formControlName="booking_lastname" />
-                </label>
-              </div>
-
-              <div>
-                <div class="error-text" *ngIf="submitted && form.get('booking_address')?.hasError('required')">Pflichtfeld</div>
-                <label>Adresse (Buchung)
-                  <input type="text" placeholder="Adresse" formControlName="booking_address" />
                 </label>
               </div>
 
@@ -66,6 +60,39 @@
                 </label>
               </div>
 
+            </div>
+
+            <h3 class="reg-subtitle">Adresse</h3>
+            <div class="grid booking-grid">
+
+
+              <!-- Adressfelder wieder ins Grid, damit sie nebeneinander bleiben -->
+              <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_street')?.hasError('required')">Pflichtfeld</div>
+                <label>Straße \+ Hausnummer (Buchung)
+                  <input type="text" placeholder="Straße \+ Hausnummer" formControlName="booking_street" />
+                </label>
+              </div>
+
+              <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_zip')?.hasError('required')">Pflichtfeld</div>
+                <label>Postleitzahl (Buchung)
+                  <input type="text" placeholder="Postleitzahl" formControlName="booking_zip" />
+                </label>
+              </div>
+
+              <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_city')?.hasError('required')">Pflichtfeld</div>
+                <label>Stadt (Buchung)
+                  <input type="text" placeholder="Stadt" formControlName="booking_city" />
+                </label>
+              </div>
+            </div>
+
+
+            <h3 class="reg-subtitle">Notfallkontakt</h3>
+            <p class="hint-text">Notfallkontakt, der im Falle einer dringenden Situation kontaktiert werden kann.</p>
+            <div class="grid emergency-grid">
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('emergency_contact_name')?.hasError('required')">Pflichtfeld</div>
                 <label>Notfallkontakt Name
@@ -80,14 +107,15 @@
                 </label>
               </div>
 
-              <label>Kommentar zur Buchung
+              <!-- Kommentar: volle Breite + Abstand nach oben -->
+              <label class="full-span comment-field">Kommentar zur Buchung
                 <textarea rows="3" placeholder="Anmerkungen" formControlName="comment"></textarea>
               </label>
             </div>
           </div>
 
           <div class="reg-section">
-            <h2>Teilnehmende</h2>
+            <h2>Teilnehmende Personen</h2>
             <div formArrayName="people">
               <div *ngFor="let p of people.controls; let i = index" [formGroupName]="i" class="person-card">
                 <div class="person-header">
@@ -123,20 +151,36 @@
                       <input type="date" formControlName="birthday" />
                     </label>
                   </div>
+
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('address')?.hasError('required')">Pflichtfeld</div>
-                    <label>Adresse
-                      <input type="text" formControlName="address" />
+                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('street')?.hasError('required')">Pflichtfeld</div>
+                    <label>Straße \+ Hausnummer
+                      <input type="text" formControlName="street" />
                     </label>
                   </div>
+
+                  <div>
+                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('zip')?.hasError('required')">Pflichtfeld</div>
+                    <label>Postleitzahl
+                      <input type="text" formControlName="zip" />
+                    </label>
+                  </div>
+
+                  <div>
+                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('city')?.hasError('required')">Pflichtfeld</div>
+                    <label>Stadt
+                      <input type="text" formControlName="city" />
+                    </label>
+                  </div>
+
                   <label>Kommentar
-                    <input type="text" formControlName="comment" />
+                    <textarea rows="3" placeholder="Anmerkungen" formControlName="comment"></textarea>
                   </label>
                 </div>
 
                 <div class="flags">
                   <label><input type="checkbox" formControlName="vegetarian" /> Vegetarisch</label>
-                  <label><input type="checkbox" formControlName="orga" /> Orga</label>
+                  <label><input type="checkbox" formControlName="orga" /> Mitwirkende Person</label>
                 </div>
               </div>
               <button type="button" class="custom-button-1" (click)="addPerson()">+ Person hinzufügen</button>

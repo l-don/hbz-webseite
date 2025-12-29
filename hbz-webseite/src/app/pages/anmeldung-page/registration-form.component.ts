@@ -54,7 +54,9 @@ export class RegistrationFormComponent implements OnInit {
       // Buchungsdaten (Ersteller der Registrierung)
       booking_firstname: ['', [Validators.required]],
       booking_lastname: ['', [Validators.required]],
-      booking_address: ['', [Validators.required]],
+      booking_street: ['', [Validators.required]],
+      booking_city: ['', [Validators.required]],
+      booking_zip: ['', [Validators.required]],
 
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
@@ -69,6 +71,15 @@ export class RegistrationFormComponent implements OnInit {
       people: this.fb.array([]),
       items: this.fb.array([])
     });
+  }
+
+  private joinAddress(street: string, zip: string, city: string): string {
+    const s = (street ?? '').trim();
+    const z = (zip ?? '').trim();
+    const c = (city ?? '').trim();
+
+    const zipCity = [z, c].filter(Boolean).join(' ');
+    return [s, zipCity].filter(Boolean).join(', ');
   }
 
   async ngOnInit(): Promise<void> {
@@ -123,7 +134,9 @@ export class RegistrationFormComponent implements OnInit {
       firstname: [''],
       lastname: [''],
       birthday: [''],
-      address: [''],
+      street: [''],
+      city: [''],
+      zip: [''],
       comment: [''],
       vegetarian: [false],
       // staff entfernt
@@ -139,12 +152,16 @@ export class RegistrationFormComponent implements OnInit {
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
     group.get('birthday')!.setValidators(isPrimary ? [Validators.required] : []);
-    group.get('address')!.setValidators(isPrimary ? [Validators.required] : []);
+    group.get('street')!.setValidators(isPrimary ? [Validators.required] : []);
+    group.get('city')!.setValidators(isPrimary ? [Validators.required] : []);
+    group.get('zip')!.setValidators(isPrimary ? [Validators.required] : []);
 
     group.get('firstname')!.updateValueAndValidity({ emitEvent: false });
     group.get('lastname')!.updateValueAndValidity({ emitEvent: false });
     group.get('birthday')!.updateValueAndValidity({ emitEvent: false });
-    group.get('address')!.updateValueAndValidity({ emitEvent: false });
+    group.get('street')!.updateValueAndValidity({ emitEvent: false });
+    group.get('city')!.updateValueAndValidity({ emitEvent: false });
+    group.get('zip')!.updateValueAndValidity({ emitEvent: false });
   }
 
   private refreshPrimaryPersonValidators() {
@@ -183,12 +200,16 @@ export class RegistrationFormComponent implements OnInit {
 
     const bookingFirstname = this.form.get('booking_firstname')!.value || '';
     const bookingLastname = this.form.get('booking_lastname')!.value || '';
-    const bookingAddress = this.form.get('booking_address')!.value || '';
+    const bookingStreet = this.form.get('booking_street')!.value || '';
+    const bookingCity = this.form.get('booking_city')!.value || '';
+    const bookingZip = this.form.get('booking_zip')!.value || '';
 
     p0.patchValue({
       firstname: bookingFirstname,
       lastname: bookingLastname,
-      address: bookingAddress
+      street: bookingStreet,
+      city: bookingCity,
+      zip: bookingZip
     });
 
     p0.markAsDirty();
@@ -324,11 +345,16 @@ export class RegistrationFormComponent implements OnInit {
     const bookingLastname = this.form.get('booking_lastname')!.value || '';
     const bookingName = (bookingFirstname + ' ' + bookingLastname).trim();
 
+    const bookingStreet = this.form.get('booking_street')!.value || '';
+    const bookingCity = this.form.get('booking_city')!.value || '';
+    const bookingZip = this.form.get('booking_zip')!.value || '';
+    const bookingAddressJoined = this.joinAddress(bookingStreet, bookingZip, bookingCity);
+
     const backendPayload: RegistrationApiPayload = {
       eventId: eventId,
       registration: {
         name: bookingName || this.form.get('emergency_contact_name')!.value || 'Unbekannt',
-        address: this.form.get('booking_address')!.value || '',
+        address: bookingAddressJoined,
         email: this.form.get('email')!.value,
         phone: this.form.get('phone')!.value,
         emergency: this.form.get('emergency_contact_phone')!.value,
@@ -339,6 +365,11 @@ export class RegistrationFormComponent implements OnInit {
         const lastname = ctrl.get('lastname')!.value || '';
         const name = (firstname + ' ' + lastname).trim();
 
+        const street = ctrl.get('street')!.value || '';
+        const city = ctrl.get('city')!.value || '';
+        const zip = ctrl.get('zip')!.value || '';
+        const addressJoined = this.joinAddress(street, zip, city);
+
         const flag_vegetarian = !!ctrl.get('vegetarian')!.value;
         const orga = !!ctrl.get('orga')!.value;
         const flag_organization = orga ? 1 : 0;
@@ -346,7 +377,7 @@ export class RegistrationFormComponent implements OnInit {
         return {
           name,
           birthday: ctrl.get('birthday')!.value || '',
-          address: ctrl.get('address')!.value || '',
+          address: addressJoined,
           comment: ctrl.get('comment')!.value || '',
           flag_vegetarian,
           flag_organization
@@ -379,7 +410,9 @@ export class RegistrationFormComponent implements OnInit {
 
         booking_firstname: '',
         booking_lastname: '',
-        booking_address: '',
+        booking_street: '',
+        booking_city: '',
+        booking_zip: '',
 
         email: '',
         phone: '',
