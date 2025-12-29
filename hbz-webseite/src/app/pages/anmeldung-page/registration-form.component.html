@@ -129,43 +129,43 @@
 
                 <div class="grid">
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('firstname')?.hasError('required')">Pflichtfeld</div>
-                    <label>Vorname <span *ngIf="i === 0">*</span>
+                    <div class="error-text" *ngIf="submitted && p.get('firstname')?.hasError('required')">Pflichtfeld</div>
+                    <label>Vorname *
                       <input type="text" formControlName="firstname" />
                     </label>
                   </div>
 
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('lastname')?.hasError('required')">Pflichtfeld</div>
-                    <label>Nachname <span *ngIf="i === 0">*</span>
+                    <div class="error-text" *ngIf="submitted && p.get('lastname')?.hasError('required')">Pflichtfeld</div>
+                    <label>Nachname *
                       <input type="text" formControlName="lastname" />
                     </label>
                   </div>
 
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('birthday')?.hasError('required')">Pflichtfeld</div>
-                    <label>Geburtstag <span *ngIf="i === 0">*</span>
+                    <div class="error-text" *ngIf="submitted && p.get('birthday')?.hasError('required')">Pflichtfeld</div>
+                    <label>Geburtstag *
                       <input type="date" formControlName="birthday" />
                     </label>
                   </div>
 
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('street')?.hasError('required')">Pflichtfeld</div>
-                    <label>Straße \+ Hausnummer <span *ngIf="i === 0">*</span>
+                    <div class="error-text" *ngIf="submitted && p.get('street')?.hasError('required')">Pflichtfeld</div>
+                    <label>Straße \+ Hausnummer *
                       <input type="text" formControlName="street" />
                     </label>
                   </div>
 
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('zip')?.hasError('required')">Pflichtfeld</div>
-                    <label>Postleitzahl <span *ngIf="i === 0">*</span>
+                    <div class="error-text" *ngIf="submitted && p.get('zip')?.hasError('required')">Pflichtfeld</div>
+                    <label>Postleitzahl *
                       <input type="text" formControlName="zip" />
                     </label>
                   </div>
 
                   <div>
-                    <div class="error-text" *ngIf="submitted && i === 0 && p.get('city')?.hasError('required')">Pflichtfeld</div>
-                    <label>Stadt <span *ngIf="i === 0">*</span>
+                    <div class="error-text" *ngIf="submitted && p.get('city')?.hasError('required')">Pflichtfeld</div>
+                    <label>Stadt *
                       <input type="text" formControlName="city" />
                     </label>
                   </div>
@@ -272,12 +272,14 @@
           <div class="consent-list">
             <label class="consent-item">
               <input class="consent-checkbox" type="checkbox" formControlName="dsgvo_accepted" />
+              <span class="consent-text">Ich habe die </span>
               <a class="consent-link" routerLink="/dsgvo" target="_blank" rel="noopener">Datenschutzerklärung</a>
               <span class="consent-text">gelesen und stimme ihr zu.</span>
             </label>
 
             <label class="consent-item">
               <input class="consent-checkbox" type="checkbox" formControlName="agb_accepted" />
+              <span class="consent-text">Ich habe die </span>
               <a class="consent-link" routerLink="/agb" target="_blank" rel="noopener">AGB</a>
               <span class="consent-text">gelesen und stimme ihr zu.</span>
             </label>

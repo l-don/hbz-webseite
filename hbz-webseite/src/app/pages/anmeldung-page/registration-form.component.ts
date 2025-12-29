@@ -128,8 +128,7 @@ export class RegistrationFormComponent implements OnInit {
     );
   }
 
-  // Erzeugt neues Person formular
-  private createPersonGroup(isPrimary = false): FormGroup {
+  private createPersonGroup(): FormGroup {
     const group = this.fb.group({
       firstname: [''],
       lastname: [''],
@@ -142,19 +141,19 @@ export class RegistrationFormComponent implements OnInit {
       // staff entfernt
       orga: [false]
     });
-    this.applyPersonValidators(group, isPrimary);
+    this.applyPersonValidators(group);
     return group;
   }
 
-  private applyPersonValidators(group: FormGroup, isPrimary: boolean) {
-    // Aktuell hat nur Primärperson Pflichtfelder
-    const required = isPrimary ? [Validators.required] : [];
+  private applyPersonValidators(group: FormGroup) {
+    const required = [Validators.required];
+
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
-    group.get('birthday')!.setValidators(isPrimary ? [Validators.required] : []);
-    group.get('street')!.setValidators(isPrimary ? [Validators.required] : []);
-    group.get('city')!.setValidators(isPrimary ? [Validators.required] : []);
-    group.get('zip')!.setValidators(isPrimary ? [Validators.required] : []);
+    group.get('birthday')!.setValidators(required);
+    group.get('street')!.setValidators(required);
+    group.get('city')!.setValidators(required);
+    group.get('zip')!.setValidators(required);
 
     group.get('firstname')!.updateValueAndValidity({ emitEvent: false });
     group.get('lastname')!.updateValueAndValidity({ emitEvent: false });
@@ -164,18 +163,20 @@ export class RegistrationFormComponent implements OnInit {
     group.get('zip')!.updateValueAndValidity({ emitEvent: false });
   }
 
-  private refreshPrimaryPersonValidators() {
-    this.people.controls.forEach((ctrl, idx) => this.applyPersonValidators(ctrl, idx === 0));
+  private refreshAllPersonValidators() {
+    this.people.controls.forEach((ctrl) => this.applyPersonValidators(ctrl));
   }
 
   addPerson(): void {
-    const isPrimary = this.people.length === 0;
-    this.people.push(this.createPersonGroup(isPrimary));
+    // Wichtig: NICHT submitted setzen und NICHT alles als touched markieren
+    // Dadurch erscheinen die Pflichtfeld-Fehler nicht sofort beim Laden.
+    this.people.push(this.createPersonGroup());
+    this.refreshAllPersonValidators();
   }
 
   removePerson(index: number): void {
     this.people.removeAt(index);
-    this.refreshPrimaryPersonValidators();
+    this.refreshAllPersonValidators();
   }
 
   private createItemGroup(): FormGroup {
@@ -234,7 +235,8 @@ export class RegistrationFormComponent implements OnInit {
     this.submitted = true;
     if (!this.canProceed) {
       this.form.markAllAsTouched();
-      this.refreshPrimaryPersonValidators();
+      this.people.controls.forEach((p) => p.markAllAsTouched());
+      this.refreshAllPersonValidators();
       return;
     }
 
@@ -282,7 +284,7 @@ export class RegistrationFormComponent implements OnInit {
       // Add selected item prices
       for (const itemCtrl of this.items.controls) {
         const articleId = itemCtrl.get('article_id')!.value;
-        const article = this.itemArticles.find(a => a.id === articleId);
+        const article = this.itemArticles.find((a) => a.id === articleId);
         if (article) {
           const price = parseFloat(article.price as any) || 0;
           console.log(`[proceedToOverview] Adding item price: ${price} from`, article);
@@ -302,18 +304,8 @@ export class RegistrationFormComponent implements OnInit {
       console.error('[proceedToOverview] Error during price check:', err);
 
       let errorMsg = 'Fehler beim Abrufen der Preise.';
-      if (err.error?.details) {
-        errorMsg += '\nDetails: ' + err.error.details;
-      }
-      if (err.error?.code) {
-        errorMsg += '\nCode: ' + err.error.code;
-      }
-
-      console.error('[proceedToOverview] Error details:', {
-        message: err.message,
-        error: err.error,
-        status: err.status
-      });
+      if (err.error?.details) errorMsg += '\nDetails: ' + err.error.details;
+      if (err.error?.code) errorMsg += '\nCode: ' + err.error.code;
 
       alert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
     } finally {
@@ -332,7 +324,9 @@ export class RegistrationFormComponent implements OnInit {
 
     // Sicherheitscheck (auch wenn Button disabled ist)
     if (!this.canSubmit) {
+      this.submitted = true;
       this.form.markAllAsTouched();
+      this.people.controls.forEach((p) => p.markAllAsTouched());
       alert('Bitte akzeptieren Sie AGB und Datenschutzerklärung.');
       this.isSaving = false;
       return;
