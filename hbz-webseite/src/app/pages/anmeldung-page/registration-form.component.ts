@@ -350,6 +350,14 @@ export class RegistrationFormComponent implements OnInit {
     const bookingZip = this.form.get('booking_zip')!.value || '';
     const bookingAddressJoined = this.joinAddress(bookingStreet, bookingZip, bookingCity);
 
+    const emergencyName = (this.form.get('emergency_contact_name')!.value || '').trim();
+    const emergencyPhone = (this.form.get('emergency_contact_phone')!.value || '').trim();
+
+    const emergencyCombined =
+      emergencyName && emergencyPhone
+        ? `${emergencyName}: ${emergencyPhone}`
+        : (emergencyName || emergencyPhone);
+
     const backendPayload: RegistrationApiPayload = {
       eventId: eventId,
       registration: {
@@ -357,7 +365,7 @@ export class RegistrationFormComponent implements OnInit {
         address: bookingAddressJoined,
         email: this.form.get('email')!.value,
         phone: this.form.get('phone')!.value,
-        emergency: this.form.get('emergency_contact_phone')!.value,
+        emergency: emergencyCombined,
         comment: this.form.get('comment')!.value || ''
       },
       persons: this.people.controls.map((ctrl) => {
