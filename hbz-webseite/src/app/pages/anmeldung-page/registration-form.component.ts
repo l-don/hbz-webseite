@@ -36,6 +36,7 @@ export class RegistrationFormComponent implements OnInit {
   submitted = false;
   isSaving = false;
   hasEvents = false;
+  backendAvailable: boolean | null = null;
 
   // Two-step flow
   currentStep: 'form' | 'overview' = 'form';
@@ -87,6 +88,18 @@ export class RegistrationFormComponent implements OnInit {
     // Damit man nicht immer erst "Person hinzufügen" klicken muss legen wir direkt eine Person an
     if (this.people.length === 0) {
       this.addPerson();
+    }
+
+  this.backendAvailable = await this.apiService.healthCheck();
+
+    if (!this.backendAvailable) {
+      console.error('Backend not reachable - skipping events/items loading');
+      this.hasEvents = false;
+      this.events = [];
+      this.itemArticles = [];
+      // Optional: dem User direkt sagen, was los ist
+      alert('Der Server ist aktuell nicht erreichbar. Bitte später erneut versuchen.');
+      return;
     }
 
     // Fetch open events from backend

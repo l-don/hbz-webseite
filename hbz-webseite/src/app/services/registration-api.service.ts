@@ -55,8 +55,16 @@ export interface ItemArticle {
   price: number;
 }
 
+export interface HealthResponse {
+  status: string;
+  db?: string;
+  ping?: number;
+}
+
+
 @Injectable({ providedIn: 'root' })
-export class RegistrationApiService {
+export class RegistrationApiService
+{
   private readonly http = inject(HttpClient);
 
   // Für lokal: http://localhost:3000
@@ -120,6 +128,22 @@ export class RegistrationApiService {
       .catch((err) => {
         console.error('[RegistrationApiService] Error from backend:', err);
         throw err;
+      });
+  }
+
+  healthCheck(): Promise<boolean> {
+    console.log('[RegistrationApiService] Health check');
+    return this.http
+      .get<HealthResponse>(`${this.baseUrl}/health`)
+      .toPromise()
+      .then((res) => {
+        const ok = !!res && (res.status === 'ok' || (res as any).status === 'OK');
+        console.log('[RegistrationApiService] Health response:', res, '=> ok=', ok);
+        return ok;
+      })
+      .catch((err) => {
+        console.error('[RegistrationApiService] Health check failed:', err);
+        return false;
       });
   }
 }
