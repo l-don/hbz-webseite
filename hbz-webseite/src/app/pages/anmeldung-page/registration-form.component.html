@@ -17,8 +17,13 @@
               </select>
             </ng-container>
             <ng-template #singleEvent>
-              <p><strong>Veranstaltung:</strong> {{ events[0].title }}</p>
+              <p>
+                <strong>Veranstaltung:</strong>
+                {{ events[0].title }}
+                ({{ (events[0].begin || '') | date:'dd.MM.yyyy' }} – {{ (events[0].end || '') | date:'dd.MM.yyyy' }})
+              </p>
             </ng-template>
+
           </ng-container>
           <ng-template #noEvents>
             <div class="form-error-banner">

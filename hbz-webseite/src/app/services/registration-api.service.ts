@@ -44,8 +44,9 @@ export interface OpenEvent {
   id: string;
   title: string;
   description?: string;
-  start_date?: string;
-  end_date?: string;
+  deadline?: string;
+  begin?: string;
+  end?: string;
 }
 
 export interface ItemArticle {
