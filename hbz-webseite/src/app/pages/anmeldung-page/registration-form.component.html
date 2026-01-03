@@ -30,6 +30,7 @@
         <ng-container *ngIf="hasEvents; else noEventBlock">
           <div class="reg-section">
             <h2>Buchungsdaten</h2>
+            <p class="hint-text">Diese Person bekommt die Rechnung und alle Teilnehmermails.</p>
             <p class="hint-text">* = Pflichtfeld</p>
 
             <div class="grid booking-grid">
@@ -66,8 +67,8 @@
             <div class="grid booking-grid">
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('booking_street')?.hasError('required')">Pflichtfeld</div>
-                <label>Straße \+ Hausnummer (Buchung) *
-                  <input type="text" placeholder="Straße \+ Hausnummer" formControlName="booking_street" />
+                <label>Straße + Hausnummer (Buchung) *
+                  <input type="text" placeholder="Straße + Hausnummer" formControlName="booking_street" />
                 </label>
               </div>
 
@@ -87,7 +88,7 @@
             </div>
 
             <h3 class="reg-subtitle">Notfallkontakt</h3>
-            <p class="hint-text">Notfallkontakt, der im Falle einer dringenden Situation kontaktiert werden kann.</p>
+            <p class="hint-text">Person, die im Notfall kontaktiert wird.</p>
             <div class="grid emergency-grid">
               <div>
                 <div class="error-text" *ngIf="submitted && form.get('emergency_contact_name')?.hasError('required')">Pflichtfeld</div>
@@ -151,7 +152,7 @@
 
                   <div>
                     <div class="error-text" *ngIf="submitted && p.get('street')?.hasError('required')">Pflichtfeld</div>
-                    <label>Straße \+ Hausnummer *
+                    <label>Straße + Hausnummer *
                       <input type="text" formControlName="street" />
                     </label>
                   </div>
@@ -170,7 +171,7 @@
                     </label>
                   </div>
 
-                  <label>Kommentar
+                  <label class="full-span comment-field">Kommentar
                     <textarea rows="3" placeholder="Anmerkungen" formControlName="comment"></textarea>
                   </label>
                 </div>
