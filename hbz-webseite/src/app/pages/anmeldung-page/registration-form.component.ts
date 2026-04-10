@@ -166,16 +166,16 @@ export class RegistrationFormComponent implements OnInit {
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
 
-      booking_firstname: ['', [Validators.required]],
-      booking_lastname:  ['', [Validators.required]],
-      booking_street:    ['', [Validators.required]],
-      booking_city:      ['', [Validators.required]],
-      booking_zip:       ['', [Validators.required]],
+      booking_firstname: ['', [RegistrationFormComponent.noWhitespaceValidator]],
+      booking_lastname:  ['', [RegistrationFormComponent.noWhitespaceValidator]],
+      booking_street:    ['', [RegistrationFormComponent.noWhitespaceValidator]],
+      booking_city:      ['', [RegistrationFormComponent.noWhitespaceValidator]],
+      booking_zip:       ['', [RegistrationFormComponent.noWhitespaceValidator]],
 
       email:                   ['', [Validators.required, Validators.email]],
-      phone:                   ['', [Validators.required]],
-      emergency_contact_name:  ['', [Validators.required]],
-      emergency_contact_phone: ['', [Validators.required]],
+      phone:                   ['', [RegistrationFormComponent.noWhitespaceValidator]],
+      emergency_contact_name:  ['', [RegistrationFormComponent.noWhitespaceValidator]],
+      emergency_contact_phone: ['', [RegistrationFormComponent.noWhitespaceValidator]],
       comment: [''],
 
       agb_accepted:  [false, [Validators.requiredTrue]],
@@ -341,7 +341,10 @@ export class RegistrationFormComponent implements OnInit {
 
   get canProceed(): boolean {
     const eventId = this.form.get('event_id')!.value as string;
-    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted'];
+    // 'items' wird hier ignoriert: unvollständige Items (article_id leer) werden
+    // beim Submit ohnehin herausgefiltert. Ohne diesen Eintrag würde ein
+    // halb-ausgefülltes Item canProceed=false liefern, ohne sichtbare Fehlermeldung.
+    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted', 'items'];
 
     const invalidTopLevel = Object.keys(this.form.controls)
       .filter((key) => !controlsToIgnore.includes(key))
