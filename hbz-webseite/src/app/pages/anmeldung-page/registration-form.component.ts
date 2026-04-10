@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -6,7 +6,10 @@ import {
   FormBuilder,
   FormControl,
   FormGroup,
-  Validators
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+  ValidatorFn
 } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { RegistrationFirebaseService } from '../../services/registration-firebase.service';
@@ -28,7 +31,6 @@ import {
   styleUrl: './registration-form.component.scss'
 })
 export class RegistrationFormComponent implements OnInit {
-  // Load events from backend API instead of Firestore
   events: OpenEvent[] = [];
   itemArticles: ItemArticle[] = [];
 
@@ -38,59 +40,169 @@ export class RegistrationFormComponent implements OnInit {
   hasEvents = false;
   backendAvailable: boolean | null = null;
 
-  // Two-step flow
   currentStep: 'form' | 'overview' = 'form';
   priceCheckResults: PriceCheckResult[] = [];
   totalPrice = 0;
 
+  // ─── Validators ────────────────────────────────────────────────────────────
+
+  /**
+   * Rejects strings consisting only of whitespace.
+   * iOS/Android autofill sometimes inserts only spaces which Validators.required
+   * wrongly accepts.
+   */
+  private static noWhitespaceValidator(control: AbstractControl): ValidationErrors | null {
+    const value = control.value;
+    if (value === null || value === undefined) return { required: true };
+    const trimmed = String(value).trim();
+    return trimmed.length > 0 ? null : { required: true };
+  }
+
+  // ─── Mobile-Autofill Helpers ────────────────────────────────────────────────
+
+  /**
+   * Normalizes a date string to YYYY-MM-DD.
+   * iOS Safari and some Android browsers return dates in other formats
+   * (e.g. MM/DD/YYYY or DD.MM.YYYY).
+   */
+  normalizeBirthday(personIndex: number): void {
+    const ctrl = this.people.at(personIndex)?.get('birthday');
+    if (!ctrl) return;
+
+    const raw: string = (ctrl.value ?? '').trim();
+    if (!raw) return;
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return;
+
+    // MM/DD/YYYY  (iOS Safari)
+    const mdy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (mdy) {
+      ctrl.setValue(`${mdy[3]}-${mdy[1].padStart(2, '0')}-${mdy[2].padStart(2, '0')}`, { emitEvent: false });
+      ctrl.updateValueAndValidity();
+      return;
+    }
+
+    // DD.MM.YYYY  (German locale)
+    const dmy = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+    if (dmy) {
+      ctrl.setValue(`${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`, { emitEvent: false });
+      ctrl.updateValueAndValidity();
+      return;
+    }
+
+    // Native Date parsing as last resort
+    const parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) {
+      ctrl.setValue(parsed.toISOString().substring(0, 10), { emitEvent: false });
+      ctrl.updateValueAndValidity();
+    }
+  }
+
+  /**
+   * Reads actual DOM input values and patches them back into all FormControls.
+   *
+   * WHY: iOS Safari and Android Chrome fill fields visually via autofill but
+   * never fire the `input`/`change` event that Angular's value accessor relies on.
+   * The FormControl therefore stays empty even though the field looks filled.
+   */
+  syncDomValuesToForm(): void {
+    const topLevelTextKeys = [
+      'booking_firstname', 'booking_lastname',
+      'booking_street', 'booking_city', 'booking_zip',
+      'email', 'phone',
+      'emergency_contact_name', 'emergency_contact_phone',
+      'comment'
+    ];
+
+    topLevelTextKeys.forEach((key) => {
+      const ctrl = this.form.get(key);
+      if (!ctrl) return;
+      const current: string = (ctrl.value ?? '').trim();
+      if (current.length === 0) {
+        const el = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+          `[formControlName="${key}"]`
+        );
+        const domVal = (el?.value ?? '').trim();
+        if (domVal.length > 0) {
+          ctrl.setValue(domVal, { emitEvent: false });
+        }
+      }
+      ctrl.updateValueAndValidity({ emitEvent: false });
+    });
+
+    this.people.controls.forEach((personCtrl, personIdx) => {
+      const personGroup = personCtrl as FormGroup;
+      const personFields = ['firstname', 'lastname', 'birthday', 'street', 'city', 'zip', 'comment'];
+
+      personFields.forEach((field) => {
+        const ctrl = personGroup.get(field);
+        if (!ctrl) return;
+        const current: string = (ctrl.value ?? '').trim();
+        if (current.length === 0) {
+          const allEls = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+            `[formControlName="${field}"]`
+          );
+          const el = allEls[personIdx];
+          const domVal = (el?.value ?? '').trim();
+          if (domVal.length > 0) {
+            ctrl.setValue(domVal, { emitEvent: false });
+          }
+        }
+        ctrl.updateValueAndValidity({ emitEvent: false });
+      });
+    });
+  }
+
+  // ─── Constructor ────────────────────────────────────────────────────────────
+
   constructor(
     private fb: FormBuilder,
-    private regService: RegistrationFirebaseService, // aktuell ungenutzt, kann später entfernt werden
+    private regService: RegistrationFirebaseService,
     private eventsService: EventsService,
     private apiService: RegistrationApiService,
-    private router: Router
+    private router: Router,
+    private ngZone: NgZone
   ) {
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
 
-      // Buchungsdaten (Ersteller der Registrierung)
       booking_firstname: ['', [Validators.required]],
-      booking_lastname: ['', [Validators.required]],
-      booking_street: ['', [Validators.required]],
-      booking_city: ['', [Validators.required]],
-      booking_zip: ['', [Validators.required]],
+      booking_lastname:  ['', [Validators.required]],
+      booking_street:    ['', [Validators.required]],
+      booking_city:      ['', [Validators.required]],
+      booking_zip:       ['', [Validators.required]],
 
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required]],
-      emergency_contact_name: ['', [Validators.required]],
+      email:                   ['', [Validators.required, Validators.email]],
+      phone:                   ['', [Validators.required]],
+      emergency_contact_name:  ['', [Validators.required]],
       emergency_contact_phone: ['', [Validators.required]],
       comment: [''],
 
-      // AGB / DSGVO
-      agb_accepted: [false, [Validators.requiredTrue]],
-      dsgvo_accepted: [false, [Validators.requiredTrue]],
+      agb_accepted:  [false, [Validators.requiredTrue]],
+      dsgvo_accepted:[false, [Validators.requiredTrue]],
 
       people: this.fb.array([]),
-      items: this.fb.array([])
+      items:  this.fb.array([])
     });
   }
+
+  // ─── Helpers ────────────────────────────────────────────────────────────────
 
   private joinAddress(street: string, zip: string, city: string): string {
     const s = (street ?? '').trim();
     const z = (zip ?? '').trim();
     const c = (city ?? '').trim();
-
-    const zipCity = [z, c].filter(Boolean).join(' ');
-    return [s, zipCity].filter(Boolean).join(', ');
+    return [[s], [[z, c].filter(Boolean).join(' ')]].map((p) => p[0]).filter(Boolean).join(', ');
   }
 
+  // ─── Lifecycle ──────────────────────────────────────────────────────────────
+
   async ngOnInit(): Promise<void> {
-    // Damit man nicht immer erst "Person hinzufügen" klicken muss legen wir direkt eine Person an
     if (this.people.length === 0) {
       this.addPerson();
     }
 
-  this.backendAvailable = await this.apiService.healthCheck();
+    this.backendAvailable = await this.apiService.healthCheck();
 
     if (!this.backendAvailable) {
       console.error('Backend not reachable - skipping events/items loading');
@@ -126,7 +238,8 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
-  // Hilfsmethoden, erlauben this.people und this.items anstatt this.form.get(...) as FormArray<FormGroup>
+  // ─── FormArray Accessors ────────────────────────────────────────────────────
+
   get people(): FormArray<FormGroup> {
     return this.form.get('people') as FormArray<FormGroup>;
   }
@@ -135,55 +248,48 @@ export class RegistrationFormComponent implements OnInit {
     return this.form.get('items') as FormArray<FormGroup>;
   }
 
-  get canSubmit(): boolean {
-    return (
-      this.form.get('agb_accepted')?.value === true &&
-      this.form.get('dsgvo_accepted')?.value === true
-    );
-  }
+  // ─── Person Management ──────────────────────────────────────────────────────
 
   private createPersonGroup(): FormGroup {
     const group = this.fb.group({
-      firstname: [''],
-      lastname: [''],
-      birthday: [''],
-      street: [''],
-      city: [''],
-      zip: [''],
-      comment: [''],
+      firstname:  [''],
+      lastname:   [''],
+      birthday:   [''],
+      street:     [''],
+      city:       [''],
+      zip:        [''],
+      comment:    [''],
       vegetarian: [false],
-      // staff entfernt
-      orga: [false]
+      orga:       [false]
     });
     this.applyPersonValidators(group);
     return group;
   }
 
-  private applyPersonValidators(group: FormGroup) {
-    const required = [Validators.required];
+  private applyPersonValidators(group: FormGroup): void {
+    const required = [RegistrationFormComponent.noWhitespaceValidator];
 
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
-    group.get('birthday')!.setValidators(required);
+    // Birthday: whitespace-safe + enforce YYYY-MM-DD so iOS/Android formats are caught
+    group.get('birthday')!.setValidators([
+      RegistrationFormComponent.noWhitespaceValidator,
+      Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)
+    ]);
     group.get('street')!.setValidators(required);
     group.get('city')!.setValidators(required);
     group.get('zip')!.setValidators(required);
 
-    group.get('firstname')!.updateValueAndValidity({ emitEvent: false });
-    group.get('lastname')!.updateValueAndValidity({ emitEvent: false });
-    group.get('birthday')!.updateValueAndValidity({ emitEvent: false });
-    group.get('street')!.updateValueAndValidity({ emitEvent: false });
-    group.get('city')!.updateValueAndValidity({ emitEvent: false });
-    group.get('zip')!.updateValueAndValidity({ emitEvent: false });
+    Object.keys(group.controls).forEach((key) =>
+      group.get(key)!.updateValueAndValidity({ emitEvent: false })
+    );
   }
 
-  private refreshAllPersonValidators() {
+  private refreshAllPersonValidators(): void {
     this.people.controls.forEach((ctrl) => this.applyPersonValidators(ctrl));
   }
 
   addPerson(): void {
-    // Wichtig: NICHT submitted setzen und NICHT alles als touched markieren
-    // Dadurch erscheinen die Pflichtfeld-Fehler nicht sofort beim Laden.
     this.people.push(this.createPersonGroup());
     this.refreshAllPersonValidators();
   }
@@ -193,10 +299,12 @@ export class RegistrationFormComponent implements OnInit {
     this.refreshAllPersonValidators();
   }
 
+  // ─── Item Management ────────────────────────────────────────────────────────
+
   private createItemGroup(): FormGroup {
     return this.fb.group({
       article_id: ['', Validators.required],
-      comment: ['']
+      comment:    ['']
     });
   }
 
@@ -208,44 +316,66 @@ export class RegistrationFormComponent implements OnInit {
     this.items.removeAt(index);
   }
 
+  // ─── UI Helpers ─────────────────────────────────────────────────────────────
+
   copyBookingDataToFirstPerson(): void {
     if (this.people.length === 0) return;
-
     const p0 = this.people.at(0);
-
-    const bookingFirstname = this.form.get('booking_firstname')!.value || '';
-    const bookingLastname = this.form.get('booking_lastname')!.value || '';
-    const bookingStreet = this.form.get('booking_street')!.value || '';
-    const bookingCity = this.form.get('booking_city')!.value || '';
-    const bookingZip = this.form.get('booking_zip')!.value || '';
-
     p0.patchValue({
-      firstname: bookingFirstname,
-      lastname: bookingLastname,
-      street: bookingStreet,
-      city: bookingCity,
-      zip: bookingZip
+      firstname: this.form.get('booking_firstname')!.value || '',
+      lastname:  this.form.get('booking_lastname')!.value  || '',
+      street:    this.form.get('booking_street')!.value    || '',
+      city:      this.form.get('booking_city')!.value      || '',
+      zip:       this.form.get('booking_zip')!.value       || ''
     });
-
     p0.markAsDirty();
     p0.markAsTouched();
   }
 
-  get canProceed(): boolean {
-    const eventId = this.form.get('event_id')!.value as string;
-
-    // AGB/DSGVO zählen erst bei canSubmit (Step 2), nicht bei Step 1
-    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted'];
-
-    const step1Valid = Object.keys(this.form.controls)
-      .filter((key) => !controlsToIgnore.includes(key))
-      .every((key) => this.form.get(key)!.valid);
-
-    return this.hasEvents && !!eventId && step1Valid && this.people.length > 0;
+  get canSubmit(): boolean {
+    return (
+      this.form.get('agb_accepted')?.value  === true &&
+      this.form.get('dsgvo_accepted')?.value === true
+    );
   }
 
-  // Step 1: "Weiter" button - trigger price check
+  get canProceed(): boolean {
+    const eventId = this.form.get('event_id')!.value as string;
+    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted'];
+
+    const invalidTopLevel = Object.keys(this.form.controls)
+      .filter((key) => !controlsToIgnore.includes(key))
+      .filter((key) => !this.form.get(key)!.valid);
+
+    if (invalidTopLevel.length > 0) {
+      console.log('[canProceed] Invalid top-level controls:', invalidTopLevel);
+    }
+
+    this.people.controls.forEach((ctrl, i) => {
+      const fg = ctrl as FormGroup;
+      const invalidFields = Object.keys(fg.controls).filter((f) => fg.get(f)!.invalid);
+      if (invalidFields.length > 0) {
+        console.log(
+          `[canProceed] Person ${i} invalid fields:`,
+          invalidFields.map((f) => `${f}="${fg.get(f)!.value}"`)
+        );
+      }
+    });
+
+    return this.hasEvents && !!eventId && invalidTopLevel.length === 0 && this.people.length > 0;
+  }
+
+  // ─── Step 1: proceed to overview ────────────────────────────────────────────
+
   async proceedToOverview(): Promise<void> {
+    // ── Mobile Autofill Fix ─────────────────────────────────────────────────
+    // iOS Safari / Android Chrome fill fields visually without firing Angular's
+    // input event. Read current DOM values back into all controls first.
+    this.syncDomValuesToForm();
+    // Normalize birthday fields that mobile browsers may have formatted differently
+    this.people.controls.forEach((_, i) => this.normalizeBirthday(i));
+    // ───────────────────────────────────────────────────────────────────────
+
     this.submitted = true;
     if (!this.canProceed) {
       this.form.markAllAsTouched();
@@ -268,13 +398,8 @@ export class RegistrationFormComponent implements OnInit {
           const orga = !!ctrl.get('orga')!.value;
           const flag_organization = orga ? 1 : 0;
           const birthday = ctrl.get('birthday')!.value || '';
-
           console.log(`[proceedToOverview] Person ${idx + 1}:`, { birthday, flag_organization });
-
-          return {
-            birthday,
-            flag_organization
-          };
+          return { birthday, flag_organization };
         })
       };
 
@@ -327,12 +452,14 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
-  // Go back to form from overview
+  // ─── Step navigation ────────────────────────────────────────────────────────
+
   backToForm(): void {
     this.currentStep = 'form';
   }
 
-  // Step 2: "Absenden" button - submit registration
+  // ─── Step 2: submit registration ────────────────────────────────────────────
+
   async submitRegistration(): Promise<void> {
     this.isSaving = true;
 
@@ -350,61 +477,56 @@ export class RegistrationFormComponent implements OnInit {
 
     // Registrierung wird aus Buchungsdaten erstellt (nicht mehr aus Person 1)
     const bookingFirstname = this.form.get('booking_firstname')!.value || '';
-    const bookingLastname = this.form.get('booking_lastname')!.value || '';
-    const bookingName = (bookingFirstname + ' ' + bookingLastname).trim();
+    const bookingLastname  = this.form.get('booking_lastname')!.value  || '';
+    const bookingName      = (bookingFirstname + ' ' + bookingLastname).trim();
 
-    const bookingStreet = this.form.get('booking_street')!.value || '';
-    const bookingCity = this.form.get('booking_city')!.value || '';
-    const bookingZip = this.form.get('booking_zip')!.value || '';
-    const bookingAddressJoined = this.joinAddress(bookingStreet, bookingZip, bookingCity);
+    const bookingAddressJoined = this.joinAddress(
+      this.form.get('booking_street')!.value || '',
+      this.form.get('booking_zip')!.value    || '',
+      this.form.get('booking_city')!.value   || ''
+    );
 
-    const emergencyName = (this.form.get('emergency_contact_name')!.value || '').trim();
+    const emergencyName  = (this.form.get('emergency_contact_name')!.value  || '').trim();
     const emergencyPhone = (this.form.get('emergency_contact_phone')!.value || '').trim();
-
     const emergencyCombined =
       emergencyName && emergencyPhone
         ? `${emergencyName}: ${emergencyPhone}`
         : (emergencyName || emergencyPhone);
 
     const backendPayload: RegistrationApiPayload = {
-      eventId: eventId,
+      eventId,
       registration: {
-        name: bookingName || this.form.get('emergency_contact_name')!.value || 'Unbekannt',
-        address: bookingAddressJoined,
-        email: this.form.get('email')!.value,
-        phone: this.form.get('phone')!.value,
+        name:      bookingName || emergencyName || 'Unbekannt',
+        address:   bookingAddressJoined,
+        email:     this.form.get('email')!.value,
+        phone:     this.form.get('phone')!.value,
         emergency: emergencyCombined,
-        comment: this.form.get('comment')!.value || ''
+        comment:   this.form.get('comment')!.value || ''
       },
       persons: this.people.controls.map((ctrl) => {
         const firstname = ctrl.get('firstname')!.value || '';
-        const lastname = ctrl.get('lastname')!.value || '';
-        const name = (firstname + ' ' + lastname).trim();
-
-        const street = ctrl.get('street')!.value || '';
-        const city = ctrl.get('city')!.value || '';
-        const zip = ctrl.get('zip')!.value || '';
-        const addressJoined = this.joinAddress(street, zip, city);
-
-        const flag_vegetarian = !!ctrl.get('vegetarian')!.value;
-        const orga = !!ctrl.get('orga')!.value;
-        const flag_organization = orga ? 1 : 0;
-
+        const lastname  = ctrl.get('lastname')!.value  || '';
+        const addressJoined = this.joinAddress(
+          ctrl.get('street')!.value || '',
+          ctrl.get('zip')!.value    || '',
+          ctrl.get('city')!.value   || ''
+        );
         return {
-          name,
-          birthday: ctrl.get('birthday')!.value || '',
-          address: addressJoined,
-          comment: ctrl.get('comment')!.value || '',
-          flag_vegetarian,
-          flag_organization
+          name:              (firstname + ' ' + lastname).trim(),
+          birthday:          ctrl.get('birthday')!.value || '',
+          address:           addressJoined,
+          comment:           ctrl.get('comment')!.value || '',
+          flag_vegetarian:   !!ctrl.get('vegetarian')!.value,
+          flag_organization: ctrl.get('orga')!.value ? 1 : 0
         };
       }),
-      items: this.items.controls.map((ctrl) => {
-        return {
+      // Skip items without a selected article to avoid backend validation errors
+      items: this.items.controls
+        .filter((ctrl) => !!ctrl.get('article_id')!.value)
+        .map((ctrl) => ({
           articleId: ctrl.get('article_id')!.value,
-          comment: ctrl.get('comment')!.value || ''
-        };
-      })
+          comment:   ctrl.get('comment')!.value || ''
+        }))
     };
 
     console.log('Backend (MySQL) payload', backendPayload);
@@ -422,22 +544,19 @@ export class RegistrationFormComponent implements OnInit {
       this.totalPrice = 0;
 
       this.form.reset({
-        event_id: this.events.length > 0 ? this.events[0].id : '',
-
-        booking_firstname: '',
-        booking_lastname: '',
-        booking_street: '',
-        booking_city: '',
-        booking_zip: '',
-
-        email: '',
-        phone: '',
-        emergency_contact_name: '',
+        event_id:                this.events.length > 0 ? this.events[0].id : '',
+        booking_firstname:       '',
+        booking_lastname:        '',
+        booking_street:          '',
+        booking_city:            '',
+        booking_zip:             '',
+        email:                   '',
+        phone:                   '',
+        emergency_contact_name:  '',
         emergency_contact_phone: '',
-        comment: '',
-
-        agb_accepted: false,
-        dsgvo_accepted: false
+        comment:                 '',
+        agb_accepted:            false,
+        dsgvo_accepted:          false
       });
 
       this.people.clear();
