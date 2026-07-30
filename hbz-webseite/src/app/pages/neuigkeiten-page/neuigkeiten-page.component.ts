@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BannerImgComponent } from "../../banner-img/banner-img.component";
 import { GalleryLightboxComponent } from "../../gallery-lightbox/gallery-lightbox.component";
+import { InstagramFeedComponent } from "../../instagram-feed/instagram-feed.component";
 import { CommonModule } from "@angular/common";
 
 @Component({
@@ -9,12 +10,14 @@ import { CommonModule } from "@angular/common";
   imports: [
     BannerImgComponent,
     GalleryLightboxComponent,
+    InstagramFeedComponent,
     CommonModule
   ],
   templateUrl: './neuigkeiten-page.component.html',
   styleUrl: './neuigkeiten-page.component.scss'
 })
 export class NeuigkeitenPageComponent implements OnInit {
+  beholdFeedId: string = 'ZozPh6h34bfoxG0B2zzM';
   rochlitzImages: Array<any> = [];
 
   ngOnInit(): void {

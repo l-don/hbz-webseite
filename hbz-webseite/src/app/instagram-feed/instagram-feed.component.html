@@ -1,0 +1,10 @@
+<div class="instagram-feed-wrapper">
+  @if (feedId) {
+    <behold-widget [attr.feed-id]="feedId"></behold-widget>
+    <figure [attr.data-behold-id]="feedId"></figure>
+  } @else {
+    <div class="placeholder-notice">
+      <p><em>[Instagram Feed Preview: Bitte Behold Feed-ID in <code>feedId</code> eintragen]</em></p>
+    </div>
+  }
+</div>
