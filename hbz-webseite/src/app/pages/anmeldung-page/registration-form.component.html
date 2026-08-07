@@ -40,6 +40,18 @@
 
             <div class="grid booking-grid">
               <div>
+                <div class="error-text" *ngIf="submitted && form.get('booking_title')?.hasError('required')">Pflichtfeld</div>
+                <label>Anrede (Buchung) *
+                  <select formControlName="booking_title">
+                    <option value="" disabled>Bitte wählen</option>
+                    <option value="Frau">Frau</option>
+                    <option value="Herr">Herr</option>
+                    <option value="Divers">Divers</option>
+                  </select>
+                </label>
+              </div>
+
+              <div>
                 <div class="error-text" *ngIf="submitted && form.get('booking_firstname')?.hasError('required')">Pflichtfeld</div>
                 <label>Vorname (Buchung) *
                   <input type="text" placeholder="Vorname" formControlName="booking_firstname" />
@@ -135,6 +147,18 @@
 
                 <div class="grid">
                   <div>
+                    <div class="error-text" *ngIf="submitted && p.get('title')?.hasError('required')">Pflichtfeld</div>
+                    <label>Anrede *
+                      <select formControlName="title">
+                        <option value="" disabled>Bitte wählen</option>
+                        <option value="Frau">Frau</option>
+                        <option value="Herr">Herr</option>
+                        <option value="Divers">Divers</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div>
                     <div class="error-text" *ngIf="submitted && p.get('firstname')?.hasError('required')">Pflichtfeld</div>
                     <label>Vorname *
                       <input type="text" formControlName="firstname" />
@@ -183,7 +207,6 @@
 
                 <div class="flags">
                   <label><input type="checkbox" formControlName="vegetarian" /> Vegetarisch</label>
-                  <label><input type="checkbox" formControlName="orga" /> Mitwirkende Person</label>
                 </div>
               </div>
               <button type="button" class="custom-button-1" (click)="addPerson()">+ Person hinzufügen</button>
@@ -198,7 +221,7 @@
                   <select formControlName="article_id">
                     <option value="" disabled>Bitte wählen</option>
                     <option *ngFor="let article of itemArticles" [value]="article.id">
-                      {{ article.description }} ({{ article.price }}€)
+                      {{ article.description }} ({{ parsePriceToEuro(article.price) | number:'1.2-2' }}€)
                     </option>
                   </select>
                 </label>
@@ -247,7 +270,7 @@
                 {{ people.controls[i].get('firstname')?.value }} {{ people.controls[i].get('lastname')?.value }}
               </div>
               <div class="overview-details">
-                {{ result.description }} - {{ result.price }}€
+                {{ result.description }} - {{ parsePriceToEuro(result.price) | number:'1.2-2' }}€
               </div>
             </div>
           </div>
@@ -257,7 +280,7 @@
             <div *ngFor="let it of items.controls; let j = index" class="overview-item">
               <ng-container *ngFor="let article of itemArticles">
                 <div *ngIf="article.id === it.get('article_id')?.value">
-                  {{ article.description }} - {{ article.price }}€
+                  {{ article.description }} - {{ parsePriceToEuro(article.price) | number:'1.2-2' }}€
                   <span *ngIf="it.get('comment')?.value" class="overview-comment">
                     ({{ it.get('comment')?.value }})
                   </span>
@@ -267,7 +290,7 @@
           </div>
 
           <div class="overview-total">
-            <strong>Gesamtpreis:</strong> {{ totalPrice }}€
+            <strong>Gesamtpreis:</strong> {{ totalPrice | number:'1.2-2' }}€
           </div>
         </div>
 

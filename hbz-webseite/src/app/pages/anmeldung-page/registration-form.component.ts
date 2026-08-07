@@ -17,10 +17,10 @@ import { BannerImgComponent } from '../../banner-img/banner-img.component';
 import { EventsService } from '../../services/events.service';
 import {
   RegistrationApiService,
-  RegistrationApiPayload,
   OpenEvent,
-  ItemArticle,
-  PriceCheckResult
+  Article,
+  RegistrationRequest,
+  parsePriceToEuro
 } from '../../services/registration-api.service';
 
 @Component({
@@ -32,7 +32,7 @@ import {
 })
 export class RegistrationFormComponent implements OnInit {
   events: OpenEvent[] = [];
-  itemArticles: ItemArticle[] = [];
+  itemArticles: Article[] = [];
 
   form: FormGroup;
   submitted = false;
@@ -41,8 +41,9 @@ export class RegistrationFormComponent implements OnInit {
   backendAvailable: boolean | null = null;
 
   currentStep: 'form' | 'overview' = 'form';
-  priceCheckResults: PriceCheckResult[] = [];
+  priceCheckResults: Article[] = [];
   totalPrice = 0;
+  parsePriceToEuro = parsePriceToEuro;
 
   // ─── Validators ────────────────────────────────────────────────────────────
 
@@ -98,6 +99,12 @@ export class RegistrationFormComponent implements OnInit {
     }
   }
 
+  private showAlert(msg: string): void {
+    if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+      window.alert(msg);
+    }
+  }
+
   /**
    * Reads actual DOM input values and patches them back into all FormControls.
    *
@@ -106,8 +113,10 @@ export class RegistrationFormComponent implements OnInit {
    * The FormControl therefore stays empty even though the field looks filled.
    */
   syncDomValuesToForm(): void {
+    if (typeof document === 'undefined') return;
+
     const topLevelTextKeys = [
-      'booking_firstname', 'booking_lastname',
+      'booking_title', 'booking_firstname', 'booking_lastname',
       'booking_street', 'booking_city', 'booking_zip',
       'email', 'phone',
       'emergency_contact_name', 'emergency_contact_phone',
@@ -119,7 +128,7 @@ export class RegistrationFormComponent implements OnInit {
       if (!ctrl) return;
       const current: string = (ctrl.value ?? '').trim();
       if (current.length === 0) {
-        const el = document.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+        const el = document.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
           `[formControlName="${key}"]`
         );
         const domVal = (el?.value ?? '').trim();
@@ -132,14 +141,14 @@ export class RegistrationFormComponent implements OnInit {
 
     this.people.controls.forEach((personCtrl, personIdx) => {
       const personGroup = personCtrl as FormGroup;
-      const personFields = ['firstname', 'lastname', 'birthday', 'street', 'city', 'zip', 'comment'];
+      const personFields = ['title', 'firstname', 'lastname', 'birthday', 'street', 'city', 'zip', 'comment'];
 
       personFields.forEach((field) => {
         const ctrl = personGroup.get(field);
         if (!ctrl) return;
         const current: string = (ctrl.value ?? '').trim();
         if (current.length === 0) {
-          const allEls = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+          const allEls = document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
             `[formControlName="${field}"]`
           );
           const el = allEls[personIdx];
@@ -166,6 +175,7 @@ export class RegistrationFormComponent implements OnInit {
     this.form = this.fb.group({
       event_id: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
 
+      booking_title:     ['', [RegistrationFormComponent.noWhitespaceValidator]],
       booking_firstname: ['', [RegistrationFormComponent.noWhitespaceValidator]],
       booking_lastname:  ['', [RegistrationFormComponent.noWhitespaceValidator]],
       booking_street:    ['', [RegistrationFormComponent.noWhitespaceValidator]],
@@ -186,15 +196,6 @@ export class RegistrationFormComponent implements OnInit {
     });
   }
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
-
-  private joinAddress(street: string, zip: string, city: string): string {
-    const s = (street ?? '').trim();
-    const z = (zip ?? '').trim();
-    const c = (city ?? '').trim();
-    return [[s], [[z, c].filter(Boolean).join(' ')]].map((p) => p[0]).filter(Boolean).join(', ');
-  }
-
   // ─── Lifecycle ──────────────────────────────────────────────────────────────
 
   async ngOnInit(): Promise<void> {
@@ -209,8 +210,7 @@ export class RegistrationFormComponent implements OnInit {
       this.hasEvents = false;
       this.events = [];
       this.itemArticles = [];
-      // Optional: dem User direkt sagen, was los ist
-      alert('Der Server ist aktuell nicht erreichbar. Bitte später erneut versuchen.');
+      this.showAlert('Der Server ist aktuell nicht erreichbar. Bitte später erneut versuchen.');
       return;
     }
 
@@ -219,19 +219,21 @@ export class RegistrationFormComponent implements OnInit {
       this.events = await this.apiService.getOpenEvents();
       this.hasEvents = this.events.length > 0;
 
-      // Das erste event in der Liste wird automatisch ausgewählt
       if (this.hasEvents) {
         this.form.get('event_id')!.setValue(this.events[0].id);
+        const eventType = this.events[0].type || 'hbz';
+        await this.loadItemsForEventType(eventType);
       }
     } catch (err) {
       console.error('Error fetching open events:', err);
       this.hasEvents = false;
     }
+  }
 
-    // Fetch items from backend
+  async loadItemsForEventType(eventType: string): Promise<void> {
     try {
-      this.itemArticles = await this.apiService.getItems();
-      console.log('Loaded item articles:', this.itemArticles);
+      this.itemArticles = await this.apiService.getItems(eventType);
+      console.log('Loaded item articles for eventType', eventType, ':', this.itemArticles);
     } catch (err) {
       console.error('Error fetching items:', err);
       this.itemArticles = [];
@@ -252,6 +254,7 @@ export class RegistrationFormComponent implements OnInit {
 
   private createPersonGroup(): FormGroup {
     const group = this.fb.group({
+      title:      [''],
       firstname:  [''],
       lastname:   [''],
       birthday:   [''],
@@ -259,8 +262,7 @@ export class RegistrationFormComponent implements OnInit {
       city:       [''],
       zip:        [''],
       comment:    [''],
-      vegetarian: [false],
-      orga:       [false]
+      vegetarian: [false]
     });
     this.applyPersonValidators(group);
     return group;
@@ -269,9 +271,9 @@ export class RegistrationFormComponent implements OnInit {
   private applyPersonValidators(group: FormGroup): void {
     const required = [RegistrationFormComponent.noWhitespaceValidator];
 
+    group.get('title')!.setValidators(required);
     group.get('firstname')!.setValidators(required);
     group.get('lastname')!.setValidators(required);
-    // Birthday: whitespace-safe + enforce YYYY-MM-DD so iOS/Android formats are caught
     group.get('birthday')!.setValidators([
       RegistrationFormComponent.noWhitespaceValidator,
       Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)
@@ -322,6 +324,7 @@ export class RegistrationFormComponent implements OnInit {
     if (this.people.length === 0) return;
     const p0 = this.people.at(0);
     p0.patchValue({
+      title:     this.form.get('booking_title')!.value    || '',
       firstname: this.form.get('booking_firstname')!.value || '',
       lastname:  this.form.get('booking_lastname')!.value  || '',
       street:    this.form.get('booking_street')!.value    || '',
@@ -334,16 +337,13 @@ export class RegistrationFormComponent implements OnInit {
 
   get canSubmit(): boolean {
     return (
-      this.form.get('agb_accepted')?.value  === true &&
+      this.form.get('agb_accepted')?.value   === true &&
       this.form.get('dsgvo_accepted')?.value === true
     );
   }
 
   get canProceed(): boolean {
     const eventId = this.form.get('event_id')!.value as string;
-    // 'items' wird hier ignoriert: unvollständige Items (article_id leer) werden
-    // beim Submit ohnehin herausgefiltert. Ohne diesen Eintrag würde ein
-    // halb-ausgefülltes Item canProceed=false liefern, ohne sichtbare Fehlermeldung.
     const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted', 'items'];
 
     const invalidTopLevel = Object.keys(this.form.controls)
@@ -371,13 +371,8 @@ export class RegistrationFormComponent implements OnInit {
   // ─── Step 1: proceed to overview ────────────────────────────────────────────
 
   async proceedToOverview(): Promise<void> {
-    // ── Mobile Autofill Fix ─────────────────────────────────────────────────
-    // iOS Safari / Android Chrome fill fields visually without firing Angular's
-    // input event. Read current DOM values back into all controls first.
     this.syncDomValuesToForm();
-    // Normalize birthday fields that mobile browsers may have formatted differently
     this.people.controls.forEach((_, i) => this.normalizeBirthday(i));
-    // ───────────────────────────────────────────────────────────────────────
 
     this.submitted = true;
     if (!this.canProceed) {
@@ -391,44 +386,29 @@ export class RegistrationFormComponent implements OnInit {
 
     try {
       const eventId = this.form.get('event_id')!.value as string;
+      const birthdays = this.people.controls.map((ctrl) => (ctrl.get('birthday')!.value || '').trim());
 
-      console.log('[proceedToOverview] Starting price check for eventId:', eventId);
-      console.log('[proceedToOverview] Number of persons:', this.people.length);
+      console.log('[proceedToOverview] Requesting preview for eventId:', eventId, 'birthdays:', birthdays);
 
-      const priceCheckRequest = {
-        eventId,
-        persons: this.people.controls.map((ctrl, idx) => {
-          const orga = !!ctrl.get('orga')!.value;
-          const flag_organization = orga ? 1 : 0;
-          const birthday = ctrl.get('birthday')!.value || '';
-          console.log(`[proceedToOverview] Person ${idx + 1}:`, { birthday, flag_organization });
-          return { birthday, flag_organization };
-        })
-      };
+      // Get article prices for persons via registration preview endpoint
+      this.priceCheckResults = await this.apiService.getRegistrationPreview(eventId, birthdays);
 
-      console.log('[proceedToOverview] Sending price check request:', priceCheckRequest);
-
-      // Get article prices for persons
-      this.priceCheckResults = await this.apiService.priceCheck(priceCheckRequest);
-
-      console.log('[proceedToOverview] Price check results:', this.priceCheckResults);
+      console.log('[proceedToOverview] Preview results:', this.priceCheckResults);
 
       // Calculate total price (person articles + items)
       let total = 0;
 
-      // Add person article prices
       for (const result of this.priceCheckResults) {
-        const price = parseFloat(result.price as any) || 0;
+        const price = parsePriceToEuro(result.price);
         console.log(`[proceedToOverview] Adding person price: ${price} from`, result);
         total += price;
       }
 
-      // Add selected item prices
       for (const itemCtrl of this.items.controls) {
         const articleId = itemCtrl.get('article_id')!.value;
         const article = this.itemArticles.find((a) => a.id === articleId);
         if (article) {
-          const price = parseFloat(article.price as any) || 0;
+          const price = parsePriceToEuro(article.price);
           console.log(`[proceedToOverview] Adding item price: ${price} from`, article);
           total += price;
         }
@@ -437,19 +417,16 @@ export class RegistrationFormComponent implements OnInit {
       this.totalPrice = total;
 
       console.log('[proceedToOverview] Total price calculated:', this.totalPrice);
-      console.log('[proceedToOverview] Number of price check results:', this.priceCheckResults.length);
-
-      // Move to overview step
       this.currentStep = 'overview';
 
     } catch (err: any) {
       console.error('[proceedToOverview] Error during price check:', err);
 
       let errorMsg = 'Fehler beim Abrufen der Preise.';
-      if (err.error?.details) errorMsg += '\nDetails: ' + err.error.details;
-      if (err.error?.code) errorMsg += '\nCode: ' + err.error.code;
+      if (err.error?.message) errorMsg += '\nMessage: ' + err.error.message;
+      if (err.error?.error) errorMsg += '\nError: ' + err.error.error;
 
-      alert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
+      this.showAlert(errorMsg + '\n\nBitte überprüfen Sie die Konsole für weitere Details.');
     } finally {
       this.isSaving = false;
     }
@@ -466,81 +443,68 @@ export class RegistrationFormComponent implements OnInit {
   async submitRegistration(): Promise<void> {
     this.isSaving = true;
 
-    // Sicherheitscheck (auch wenn Button disabled ist)
     if (!this.canSubmit) {
       this.submitted = true;
       this.form.markAllAsTouched();
       this.people.controls.forEach((p) => p.markAllAsTouched());
-      alert('Bitte akzeptieren Sie AGB und Datenschutzerklärung.');
+      this.showAlert('Bitte akzeptieren Sie AGB und Datenschutzerklärung.');
       this.isSaving = false;
       return;
     }
 
     const eventId = this.form.get('event_id')!.value as string;
 
-    // Registrierung wird aus Buchungsdaten erstellt (nicht mehr aus Person 1)
-    const bookingFirstname = this.form.get('booking_firstname')!.value || '';
-    const bookingLastname  = this.form.get('booking_lastname')!.value  || '';
-    const bookingName      = (bookingFirstname + ' ' + bookingLastname).trim();
-
-    const bookingAddressJoined = this.joinAddress(
-      this.form.get('booking_street')!.value || '',
-      this.form.get('booking_zip')!.value    || '',
-      this.form.get('booking_city')!.value   || ''
-    );
-
-    const emergencyName  = (this.form.get('emergency_contact_name')!.value  || '').trim();
-    const emergencyPhone = (this.form.get('emergency_contact_phone')!.value || '').trim();
-    const emergencyCombined =
-      emergencyName && emergencyPhone
-        ? `${emergencyName}: ${emergencyPhone}`
-        : (emergencyName || emergencyPhone);
-
-    const backendPayload: RegistrationApiPayload = {
-      eventId,
-      registration: {
-        name:      bookingName || emergencyName || 'Unbekannt',
-        address:   bookingAddressJoined,
-        email:     this.form.get('email')!.value,
-        phone:     this.form.get('phone')!.value,
-        emergency: emergencyCombined,
-        comment:   this.form.get('comment')!.value || ''
+    const backendPayload: RegistrationRequest = {
+      name: {
+        title:     (this.form.get('booking_title')!.value     || '').trim(),
+        firstname: (this.form.get('booking_firstname')!.value || '').trim(),
+        lastname:  (this.form.get('booking_lastname')!.value  || '').trim()
       },
-      persons: this.people.controls.map((ctrl) => {
-        const firstname = ctrl.get('firstname')!.value || '';
-        const lastname  = ctrl.get('lastname')!.value  || '';
-        const addressJoined = this.joinAddress(
-          ctrl.get('street')!.value || '',
-          ctrl.get('zip')!.value    || '',
-          ctrl.get('city')!.value   || ''
-        );
-        return {
-          name:              (firstname + ' ' + lastname).trim(),
-          birthday:          ctrl.get('birthday')!.value || '',
-          address:           addressJoined,
-          comment:           ctrl.get('comment')!.value || '',
-          flag_vegetarian:   !!ctrl.get('vegetarian')!.value,
-          flag_organization: ctrl.get('orga')!.value ? 1 : 0
-        };
-      }),
-      // Skip items without a selected article to avoid backend validation errors
+      address: {
+        street: (this.form.get('booking_street')!.value || '').trim(),
+        zip:    (this.form.get('booking_zip')!.value    || '').trim(),
+        city:   (this.form.get('booking_city')!.value   || '').trim()
+      },
+      email:     (this.form.get('email')!.value || '').trim(),
+      phone:     (this.form.get('phone')!.value || '').trim(),
+      comment:   (this.form.get('comment')!.value || '').trim(),
+      emergency: {
+        name:  (this.form.get('emergency_contact_name')!.value  || '').trim(),
+        phone: (this.form.get('emergency_contact_phone')!.value || '').trim()
+      },
+      persons: this.people.controls.map((ctrl) => ({
+        name: {
+          title:     (ctrl.get('title')!.value     || '').trim(),
+          firstname: (ctrl.get('firstname')!.value || '').trim(),
+          lastname:  (ctrl.get('lastname')!.value  || '').trim()
+        },
+        address: {
+          street: (ctrl.get('street')!.value || '').trim(),
+          zip:    (ctrl.get('zip')!.value    || '').trim(),
+          city:   (ctrl.get('city')!.value   || '').trim()
+        },
+        birthday: (ctrl.get('birthday')!.value || '').trim(),
+        comment:  (ctrl.get('comment')!.value  || '').trim(),
+        foodOptions: {
+          vegetarian: !!ctrl.get('vegetarian')!.value
+        }
+      })),
       items: this.items.controls
         .filter((ctrl) => !!ctrl.get('article_id')!.value)
         .map((ctrl) => ({
           articleId: ctrl.get('article_id')!.value,
-          comment:   ctrl.get('comment')!.value || ''
+          comment:   (ctrl.get('comment')!.value || '').trim()
         }))
     };
 
-    console.log('Backend (MySQL) payload', backendPayload);
+    console.log('Herald RegistrationRequest payload:', backendPayload);
 
     try {
-      const result = await this.apiService.submit(backendPayload);
-      console.log('Backend result', result);
+      const result = await this.apiService.submit(eventId, backendPayload);
+      console.log('Herald submission result:', result);
 
-      alert('Anmeldung gespeichert! Sie erhalten in Kürze eine Bestätigungs-E-Mail.');
+      this.showAlert('Anmeldung gespeichert! Sie erhalten in Kürze eine Bestätigungs-E-Mail.');
 
-      // Reset form to initial state
       this.submitted = false;
       this.currentStep = 'form';
       this.priceCheckResults = [];
@@ -548,6 +512,7 @@ export class RegistrationFormComponent implements OnInit {
 
       this.form.reset({
         event_id:                this.events.length > 0 ? this.events[0].id : '',
+        booking_title:           '',
         booking_firstname:       '',
         booking_lastname:        '',
         booking_street:          '',
@@ -569,9 +534,10 @@ export class RegistrationFormComponent implements OnInit {
       await this.router.navigateByUrl('/');
     } catch (err) {
       console.error('Fehler beim Speichern der Anmeldung', err);
-      alert('Fehler beim Speichern der Anmeldung. Bitte erneut versuchen.');
+      this.showAlert('Fehler beim Speichern der Anmeldung. Bitte erneut versuchen.');
     } finally {
       this.isSaving = false;
     }
   }
 }
+

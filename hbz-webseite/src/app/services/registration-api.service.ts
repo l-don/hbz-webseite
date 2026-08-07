@@ -1,84 +1,108 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
-export interface RegistrationApiPayload {
-  eventId: string;
-  registration: {
-    name: string;
-    address: string;
-    email: string;
-    phone: string;
-    emergency: string;
-    comment?: string;
-  };
-  persons: Array<{
-    name: string;
-    birthday: string;
-    address: string;
-    comment?: string;
-    flag_vegetarian: boolean;
-    flag_organization: number;
-  }>;
-  items: Array<{
-    articleId: string;
-    comment?: string;
-  }>;
+export interface Name {
+  title: string;
+  firstname: string;
+  lastname: string;
 }
 
-export interface PriceCheckRequest {
-  eventId: string;
-  persons: Array<{
-    birthday: string;
-    flag_organization: number;
-  }>;
+export interface Address {
+  street: string;
+  zip: string;
+  city: string;
 }
 
-export interface PriceCheckResult {
-  articleId: string;
-  description: string;
-  price: number;
+export interface Price {
+  value: number;
+  decimals: number;
+  currency: string;
+}
+
+export interface EmergencyContact {
+  name: string;
+  phone: string;
+}
+
+export interface PersonFoodOptions {
+  vegetarian: boolean;
 }
 
 export interface OpenEvent {
   id: string;
+  type: string;
   title: string;
+  begin: string;
+  end: string;
   description?: string;
   deadline?: string;
-  begin?: string;
-  end?: string;
 }
 
-export interface ItemArticle {
+export interface Article {
   id: string;
   description: string;
-  price: number;
+  price: Price;
 }
 
-export interface HealthResponse {
-  status: string;
-  db?: string;
-  ping?: number;
+export interface PersonRequest {
+  name: Name;
+  address: Address;
+  birthday: string;
+  comment: string;
+  foodOptions: PersonFoodOptions;
 }
 
+export interface ItemRequest {
+  articleId: string;
+  comment: string;
+}
+
+export interface RegistrationRequest {
+  name: Name;
+  address: Address;
+  phone: string;
+  email: string;
+  comment: string;
+  emergency: EmergencyContact;
+  persons: PersonRequest[];
+  items: ItemRequest[];
+}
+
+export interface UpstreamHealth {
+  ping: number;
+  tests?: any[];
+}
+
+export interface DataWrapper<T> {
+  data: T;
+}
+
+export function parsePriceToEuro(price: Price | number | undefined | null): number {
+  if (price === null || price === undefined) return 0;
+  if (typeof price === 'number') return price;
+  if (typeof price.value === 'number') {
+    const decimals = typeof price.decimals === 'number' ? price.decimals : 2;
+    return price.value / Math.pow(10, decimals);
+  }
+  return 0;
+}
 
 @Injectable({ providedIn: 'root' })
-export class RegistrationApiService
-{
+export class RegistrationApiService {
   private readonly http = inject(HttpClient);
 
-  // Für lokal: http://localhost:3000
-  // Später kannst du das in eine Environment-Variable auslagern.
-  private readonly baseUrl = 'https://limbus.davidlokison.com/herald';
+  // Herald backend server endpoint (configured in environment.ts / environment.development.ts)
+  private readonly baseUrl = environment.apiUrl;
 
   getOpenEvents(): Promise<OpenEvent[]> {
     console.log('[RegistrationApiService] Fetching open events');
     return this.http
-      .get<OpenEvent[]>(`${this.baseUrl}/events/open`)
+      .get<DataWrapper<OpenEvent[]>>(`${this.baseUrl}/events/open`)
       .toPromise()
       .then((res) => {
         console.log('[RegistrationApiService] Open events:', res);
-        return res || [];
+        return res?.data || [];
       })
       .catch((err) => {
         console.error('[RegistrationApiService] Error fetching open events:', err);
@@ -86,14 +110,29 @@ export class RegistrationApiService
       });
   }
 
-  getItems(): Promise<ItemArticle[]> {
-    console.log('[RegistrationApiService] Fetching items');
+  getEventTypes(): Promise<string[]> {
+    console.log('[RegistrationApiService] Fetching event types');
     return this.http
-      .get<ItemArticle[]>(`${this.baseUrl}/items`)
+      .get<DataWrapper<string[]>>(`${this.baseUrl}/events/types`)
+      .toPromise()
+      .then((res) => {
+        console.log('[RegistrationApiService] Event types:', res);
+        return res?.data || [];
+      })
+      .catch((err) => {
+        console.error('[RegistrationApiService] Error fetching event types:', err);
+        throw err;
+      });
+  }
+
+  getItems(eventType: string = 'hbz'): Promise<Article[]> {
+    console.log('[RegistrationApiService] Fetching items for eventType:', eventType);
+    return this.http
+      .get<DataWrapper<Article[]>>(`${this.baseUrl}/events/types/${eventType}/items`)
       .toPromise()
       .then((res) => {
         console.log('[RegistrationApiService] Items:', res);
-        return res || [];
+        return res?.data || [];
       })
       .catch((err) => {
         console.error('[RegistrationApiService] Error fetching items:', err);
@@ -101,32 +140,39 @@ export class RegistrationApiService
       });
   }
 
-  priceCheck(request: PriceCheckRequest): Promise<PriceCheckResult[]> {
-    console.log('[RegistrationApiService] Sending pricecheck request:', request);
+  getRegistrationPreview(eventId: string, birthdays: string[]): Promise<Article[]> {
+    console.log('[RegistrationApiService] Fetching registration preview for eventId:', eventId, 'birthdays:', birthdays);
+    let params = new HttpParams();
+    birthdays.forEach((b) => {
+      params = params.append('birthdays', b);
+    });
+
     return this.http
-      .post<PriceCheckResult[]>(`${this.baseUrl}/pricecheck`, request)
+      .get<DataWrapper<Article[]>>(`${this.baseUrl}/events/${eventId}/registrations/preview`, { params })
       .toPromise()
       .then((res) => {
-        console.log('[RegistrationApiService] Pricecheck response:', res);
-        return res || [];
+        console.log('[RegistrationApiService] Registration preview response:', res);
+        return res?.data || [];
       })
       .catch((err) => {
-        console.error('[RegistrationApiService] Error in pricecheck:', err);
+        console.error('[RegistrationApiService] Error in registration preview:', err);
         throw err;
       });
   }
 
-  submit(payload: RegistrationApiPayload): Promise<any> {
-    console.log('[RegistrationApiService] Sending payload to backend:', payload);
+  submit(eventId: string, payload: RegistrationRequest, manual: boolean = false): Promise<any> {
+    console.log('[RegistrationApiService] Submitting registration for eventId:', eventId, 'payload:', payload);
+    const params = new HttpParams().set('manual', String(manual));
+
     return this.http
-      .post(`${this.baseUrl}/registrations`, payload)
+      .post(`${this.baseUrl}/events/${eventId}/registrations`, payload, { params })
       .toPromise()
       .then((res) => {
-        console.log('[RegistrationApiService] Response from backend:', res);
+        console.log('[RegistrationApiService] Response from Herald backend:', res);
         return res;
       })
       .catch((err) => {
-        console.error('[RegistrationApiService] Error from backend:', err);
+        console.error('[RegistrationApiService] Error from Herald backend:', err);
         throw err;
       });
   }
@@ -134,10 +180,10 @@ export class RegistrationApiService
   healthCheck(): Promise<boolean> {
     console.log('[RegistrationApiService] Health check');
     return this.http
-      .get<HealthResponse>(`${this.baseUrl}/health`)
+      .get<DataWrapper<UpstreamHealth>>(`${this.baseUrl}/health`)
       .toPromise()
       .then((res) => {
-        const ok = !!res && (res.status === 'ok' || (res as any).status === 'OK');
+        const ok = !!res && !!res.data && typeof res.data.ping === 'number';
         console.log('[RegistrationApiService] Health response:', res, '=> ok=', ok);
         return ok;
       })
@@ -147,3 +193,4 @@ export class RegistrationApiService
       });
   }
 }
+
