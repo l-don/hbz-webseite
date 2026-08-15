@@ -20,7 +20,7 @@
               <p>
                 <strong>Veranstaltung:</strong>
                 {{ events[0].title }}
-                ({{ (events[0].begin || '') | date:'dd.MM.yyyy' }} – {{ (events[0].end || '') | date:'dd.MM.yyyy' }})
+                ({{ (events[0].begin || events[0].start || '') | date:'dd.MM.yyyy' }} – {{ (events[0].end || '') | date:'dd.MM.yyyy' }})
               </p>
             </ng-template>
 
@@ -221,7 +221,7 @@
                   <select formControlName="article_id">
                     <option value="" disabled>Bitte wählen</option>
                     <option *ngFor="let article of itemArticles" [value]="article.id">
-                      {{ article.description }} ({{ parsePriceToEuro(article.price) | number:'1.2-2' }}€)
+                      {{ article.description }} ({{ parsePriceToEuro(article) | number:'1.2-2' }}€)
                     </option>
                   </select>
                 </label>
@@ -270,7 +270,7 @@
                 {{ people.controls[i].get('firstname')?.value }} {{ people.controls[i].get('lastname')?.value }}
               </div>
               <div class="overview-details">
-                {{ result.description }} - {{ parsePriceToEuro(result.price) | number:'1.2-2' }}€
+                {{ result.description }} - {{ parsePriceToEuro(result) | number:'1.2-2' }}€
               </div>
             </div>
           </div>
@@ -280,7 +280,7 @@
             <div *ngFor="let it of items.controls; let j = index" class="overview-item">
               <ng-container *ngFor="let article of itemArticles">
                 <div *ngIf="article.id === it.get('article_id')?.value">
-                  {{ article.description }} - {{ parsePriceToEuro(article.price) | number:'1.2-2' }}€
+                  {{ article.description }} - {{ parsePriceToEuro(article) | number:'1.2-2' }}€
                   <span *ngIf="it.get('comment')?.value" class="overview-comment">
                     ({{ it.get('comment')?.value }})
                   </span>

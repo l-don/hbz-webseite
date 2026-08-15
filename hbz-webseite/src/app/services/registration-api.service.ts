@@ -15,6 +15,7 @@ export interface Address {
 }
 
 export interface Price {
+  description: string;
   value: number;
   decimals: number;
   currency: string;
@@ -33,7 +34,8 @@ export interface OpenEvent {
   id: string;
   type: string;
   title: string;
-  begin: string;
+  begin?: string;
+  start?: string;
   end: string;
   description?: string;
   deadline?: string;
@@ -42,7 +44,9 @@ export interface OpenEvent {
 export interface Article {
   id: string;
   description: string;
-  price: Price;
+  value: number;
+  decimals: number;
+  currency: string;
 }
 
 export interface PersonRequest {
@@ -78,12 +82,19 @@ export interface DataWrapper<T> {
   data: T;
 }
 
-export function parsePriceToEuro(price: Price | number | undefined | null): number {
+export function parsePriceToEuro(price: Price | Article | number | undefined | null): number {
   if (price === null || price === undefined) return 0;
   if (typeof price === 'number') return price;
-  if (typeof price.value === 'number') {
-    const decimals = typeof price.decimals === 'number' ? price.decimals : 2;
-    return price.value / Math.pow(10, decimals);
+  // If price has nested price object (backward compatibility)
+  if (typeof (price as any).price === 'object' && typeof (price as any).price?.value === 'number') {
+    const p = (price as any).price;
+    const decimals = typeof p.decimals === 'number' ? p.decimals : 2;
+    return p.value / Math.pow(10, decimals);
+  }
+  // Flattened Price or Article
+  if (typeof (price as any).value === 'number') {
+    const decimals = typeof (price as any).decimals === 'number' ? (price as any).decimals : 2;
+    return (price as any).value / Math.pow(10, decimals);
   }
   return 0;
 }
@@ -140,7 +151,7 @@ export class RegistrationApiService {
       });
   }
 
-  getRegistrationPreview(eventId: string, birthdays: string[]): Promise<Article[]> {
+  getRegistrationPreview(eventId: string, birthdays: string[]): Promise<Price[]> {
     console.log('[RegistrationApiService] Fetching registration preview for eventId:', eventId, 'birthdays:', birthdays);
     let params = new HttpParams();
     birthdays.forEach((b) => {
@@ -148,7 +159,7 @@ export class RegistrationApiService {
     });
 
     return this.http
-      .get<DataWrapper<Article[]>>(`${this.baseUrl}/events/${eventId}/registrations/preview`, { params })
+      .get<DataWrapper<Price[]>>(`${this.baseUrl}/events/${eventId}/registrations/preview`, { params })
       .toPromise()
       .then((res) => {
         console.log('[RegistrationApiService] Registration preview response:', res);

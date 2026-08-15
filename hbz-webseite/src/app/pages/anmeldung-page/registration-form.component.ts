@@ -19,6 +19,7 @@ import {
   RegistrationApiService,
   OpenEvent,
   Article,
+  Price,
   RegistrationRequest,
   parsePriceToEuro
 } from '../../services/registration-api.service';
@@ -41,7 +42,7 @@ export class RegistrationFormComponent implements OnInit {
   backendAvailable: boolean | null = null;
 
   currentStep: 'form' | 'overview' = 'form';
-  priceCheckResults: Article[] = [];
+  priceCheckResults: Price[] = [];
   totalPrice = 0;
   parsePriceToEuro = parsePriceToEuro;
 
@@ -399,7 +400,7 @@ export class RegistrationFormComponent implements OnInit {
       let total = 0;
 
       for (const result of this.priceCheckResults) {
-        const price = parsePriceToEuro(result.price);
+        const price = parsePriceToEuro(result);
         console.log(`[proceedToOverview] Adding person price: ${price} from`, result);
         total += price;
       }
@@ -408,7 +409,7 @@ export class RegistrationFormComponent implements OnInit {
         const articleId = itemCtrl.get('article_id')!.value;
         const article = this.itemArticles.find((a) => a.id === articleId);
         if (article) {
-          const price = parsePriceToEuro(article.price);
+          const price = parsePriceToEuro(article);
           console.log(`[proceedToOverview] Adding item price: ${price} from`, article);
           total += price;
         }
