@@ -486,15 +486,15 @@ export class RegistrationFormComponent implements OnInit {
         },
         birthday: (ctrl.get('birthday')!.value || '').trim(),
         comment:  (ctrl.get('comment')!.value  || '').trim(),
-        foodOptions: {
+        food_options: {
           vegetarian: !!ctrl.get('vegetarian')!.value
         }
       })),
       items: this.items.controls
         .filter((ctrl) => !!ctrl.get('article_id')!.value)
         .map((ctrl) => ({
-          articleId: ctrl.get('article_id')!.value,
-          comment:   (ctrl.get('comment')!.value || '').trim()
+          article_id: ctrl.get('article_id')!.value,
+          comment:    (ctrl.get('comment')!.value || '').trim()
         }))
     };
 
@@ -533,9 +533,12 @@ export class RegistrationFormComponent implements OnInit {
       this.addPerson();
 
       await this.router.navigateByUrl('/');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Fehler beim Speichern der Anmeldung', err);
-      this.showAlert('Fehler beim Speichern der Anmeldung. Bitte erneut versuchen.');
+      let msg = 'Fehler beim Speichern der Anmeldung.';
+      if (err?.error?.message) msg += '\nDetails: ' + err.error.message;
+      if (err?.error?.error) msg += '\nCode: ' + err.error.error;
+      this.showAlert(msg + '\n\nBitte erneut versuchen.');
     } finally {
       this.isSaving = false;
     }

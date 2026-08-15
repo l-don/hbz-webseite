@@ -1,0 +1,8 @@
+{
+  "/herald": {
+    "target": "https://limbus.davidlokison.com",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

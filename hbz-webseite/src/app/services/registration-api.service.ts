@@ -54,11 +54,13 @@ export interface PersonRequest {
   address: Address;
   birthday: string;
   comment: string;
-  foodOptions: PersonFoodOptions;
+  food_options: PersonFoodOptions;
+  foodOptions?: PersonFoodOptions;
 }
 
 export interface ItemRequest {
-  articleId: string;
+  article_id: string;
+  articleId?: string;
   comment: string;
 }
 
@@ -171,7 +173,7 @@ export class RegistrationApiService {
       });
   }
 
-  submit(eventId: string, payload: RegistrationRequest, manual: boolean = false): Promise<any> {
+  submit(eventId: string, payload: RegistrationRequest, manual: boolean = true): Promise<any> {
     console.log('[RegistrationApiService] Submitting registration for eventId:', eventId, 'payload:', payload);
     const params = new HttpParams().set('manual', String(manual));
 
