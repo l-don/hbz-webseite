@@ -173,8 +173,8 @@ export class RegistrationApiService {
       });
   }
 
-  submit(eventId: string, payload: RegistrationRequest, manual: boolean = true): Promise<any> {
-    console.log('[RegistrationApiService] Submitting registration for eventId:', eventId, 'payload:', payload);
+  submit(eventId: string, payload: RegistrationRequest, manual: boolean = false): Promise<any> {
+    console.log('[RegistrationApiService] Submitting registration for eventId:', eventId, 'payload:', payload, 'manual:', manual);
     const params = new HttpParams().set('manual', String(manual));
 
     return this.http

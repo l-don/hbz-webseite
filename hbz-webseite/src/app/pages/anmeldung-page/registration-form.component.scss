@@ -238,8 +238,9 @@
 
   .consent-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
+    cursor: pointer;
 
     padding: 10px 12px;
     border: 1px solid rgba($medieval-brown, 0.35);
@@ -265,9 +266,9 @@
     padding: 0 !important;
     margin: 0 !important;
     accent-color: $medieval-gold;
-
-    // optisches "einrasten"
-    transform: translateY(1px);
+    flex-shrink: 0;
+    margin-top: 3px !important;
+    cursor: pointer;
   }
 
   .consent-link {

@@ -189,8 +189,9 @@ export class RegistrationFormComponent implements OnInit {
       emergency_contact_phone: ['', [RegistrationFormComponent.noWhitespaceValidator]],
       comment: [''],
 
-      agb_accepted:  [false, [Validators.requiredTrue]],
-      dsgvo_accepted:[false, [Validators.requiredTrue]],
+      agb_accepted:      [false, [Validators.requiredTrue]],
+      dsgvo_accepted:    [false, [Validators.requiredTrue]],
+      manual_processing: [false],
 
       people: this.fb.array([]),
       items:  this.fb.array([])
@@ -345,7 +346,7 @@ export class RegistrationFormComponent implements OnInit {
 
   get canProceed(): boolean {
     const eventId = this.form.get('event_id')!.value as string;
-    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted', 'items'];
+    const controlsToIgnore = ['agb_accepted', 'dsgvo_accepted', 'manual_processing', 'items'];
 
     const invalidTopLevel = Object.keys(this.form.controls)
       .filter((key) => !controlsToIgnore.includes(key))
@@ -454,6 +455,7 @@ export class RegistrationFormComponent implements OnInit {
     }
 
     const eventId = this.form.get('event_id')!.value as string;
+    const manual = !!this.form.get('manual_processing')?.value;
 
     const backendPayload: RegistrationRequest = {
       name: {
@@ -498,10 +500,10 @@ export class RegistrationFormComponent implements OnInit {
         }))
     };
 
-    console.log('Herald RegistrationRequest payload:', backendPayload);
+    console.log('Herald RegistrationRequest payload:', backendPayload, 'manual:', manual);
 
     try {
-      const result = await this.apiService.submit(eventId, backendPayload);
+      const result = await this.apiService.submit(eventId, backendPayload, manual);
       console.log('Herald submission result:', result);
 
       this.showAlert('Anmeldung gespeichert! Sie erhalten in Kürze eine Bestätigungs-E-Mail.');
@@ -525,7 +527,8 @@ export class RegistrationFormComponent implements OnInit {
         emergency_contact_phone: '',
         comment:                 '',
         agb_accepted:            false,
-        dsgvo_accepted:          false
+        dsgvo_accepted:          false,
+        manual_processing:       false
       });
 
       this.people.clear();
